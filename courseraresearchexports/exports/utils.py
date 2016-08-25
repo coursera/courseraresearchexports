@@ -23,6 +23,7 @@ import requests
 import os
 import logging
 import zipfile
+import re
 
 
 def extract_export_archive(export_archive, dest, delete_archive=True):
@@ -146,22 +147,32 @@ def create_export_job_json(**kwargs):
         raise ValueError('One of courseId, courseSlug, partnerId, '
                          'or groupID must be specified')
 
-    if kwargs.get('exportType'):
-        request['exportType'] = kwargs.get('exportType')
-        if request['exportType'] == 'RESEARCH_WITH_SCHEMAS':
-            if kwargs.get('schemaNames'):
-                request['schemaNames'] = kwargs.get('schemaNames')
-            else:
-                request['schemaNames'] = SCHEMA_NAMES
+    request['exportType'] = kwargs.get('exportType')
+    if request['exportType'] == 'RESEARCH_WITH_SCHEMAS':
+
+        if kwargs.get('schemaNames'):
+            request['schemaNames'] = kwargs.get('schemaNames')
+        else:
+            request['schemaNames'] = SCHEMA_NAMES
+
+        if kwargs.get('anonymityLevel'):
+            request['anonymityLevel'] = kwargs.get('anonymityLevel')
+        else:
+            raise ValueError('Anonymity levels must be in [{}]'.format(
+                ', '.join(ANONYMITY_LEVELS)))
+    elif request['exportType'] == 'RESEARCH_EVENTING':
+
+        request['anonymityLevel'] = 'HASHED_IDS_NO_PII'
+
+        if kwargs.get('ignoreExisting'):
+            request['ignoreExisting'] = kwargs.get('ignoreExisting')
+
+        # verify dates?
+        if kwargs.get('interval'):
+            request['interval'] = kwargs.get('interval')
     else:
         raise ValueError('Export type must be in [{}]'.format(
             ', '.join(EXPORT_TYPES)))
-
-    if kwargs.get('anonymityLevel'):
-        request['anonymityLevel'] = kwargs.get('anonymityLevel')
-    else:
-        raise ValueError('Anonymity levels must be in [{}]'.format(
-            ', '.join(ANONYMITY_LEVELS)))
 
     if kwargs.get('statementOfPurpose'):
         request['statementOfPurpose'] = kwargs.get('statementOfPurpose')
@@ -169,3 +180,4 @@ def create_export_job_json(**kwargs):
         raise ValueError('Statement of purpose must be specified')
 
     return request
+

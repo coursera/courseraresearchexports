@@ -15,7 +15,6 @@
 # limitations under the License.
 
 from courseraoauth2client import oauth2
-from datetime import datetime
 import requests
 import json
 
@@ -57,8 +56,8 @@ def get(export_job_id):
 
 def get_all():
     """
-    Uses Coursera export API to get all export jobs created by a user.
-     Cousera's export job resource limits this to the 100 most recent jobs.
+    Uses Coursera's export API to get all export jobs created by a user.
+     Coursera's export job resource limits this to the 100 most recent jobs.
     :return:
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()

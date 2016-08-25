@@ -34,18 +34,10 @@ def download(args):
 
 def create(args):
     """
-    Creates a post request to Courera's research exports service
+    Creates a post request to Coursera's research exports service
      with specified parameters
     """
-    export_job_json = utils.create_export_job_json(
-        courseId=args.courseId,
-        courseSlug=args.courseSlug,
-        partnerId=args.partnerId,
-        groupId=args.groupId,
-        exportType=args.exportType,
-        schemaNames=args.schemaNames,
-        anonymityLevel=args.anonymityLevel,
-        statementOfPurpose=args.purpose)
+    export_job_json = utils.create_export_job_json(**vars(args))
     export_job_id = api.create(export_job_json)
 
     print('Successfully created job with id {} with data:\n{}'.format(
@@ -168,7 +160,7 @@ def parser(subparsers):
         '--interval',
         nargs=2,
         metavar=('START', 'END'),
-        help='Interval of RESEARCH_EVENTING data to be exportd '
+        help='Interval of RESEARCH_EVENTING data to be expordtd '
         '(i.e. 2016-08-01 2016-08-04)')
     create_subparser.add_argument(
         '--anonymityLevel',
@@ -177,12 +169,18 @@ def parser(subparsers):
         help='One of HASHED_IDS_NO_PII or HASHED_IDS_WITH_ISOLATED_UGC_NO_PII.'
         ' If you are a data coordinator, you may request HASHED_IDS_NO_PII')
     create_subparser.add_argument(
-        '--purpose',
+        '--statementOfPurpose',
         required=True,
         help='To help us scale our research efforts and provide you with '
         'better data tools, please let us know how you plan to use the data, '
         'what types of research questions you\'re asking, who will be working '
         'with the data primarily, and with whom you plan to share it.')
+    create_subparser.add_argument(
+        '--ignoreExisting',
+        action='store_true',
+        help='If flag is set, we will recompute clickstream data all dates in '
+        'interval. Otherwise, if the selected interval consists of days that '
+        'we have previously computed clickstream data for, we skip these days')
     parser_create = jobs_subparsers.add_parser(
         'create',
         help=create.__doc__,
