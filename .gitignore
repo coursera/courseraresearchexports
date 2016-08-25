@@ -90,3 +90,6 @@ ENV/
 
 # IDEA project settings
 .idea
+
+# Ignore DS_STORE
+.DS_Store
