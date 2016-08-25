@@ -34,7 +34,7 @@ def build_parser():
         description="""Coursera tools for interacting with research exports.
         There are a number of subcommands, each with their own help
         documentation. Feel free to view them by executing `%(prog)s
-        SUB_COMMAND -h`. For example: `%(prog)s ls -h`.""",
+        SUB_COMMAND -h`. For example: `%(prog)s jobs -h`.""",
         epilog="""Please file bugs on github at:
         https://github.com/coursera/courseraresearchexports/issues. If you
         would like to contribute to this tool's development, check us out at:
@@ -49,9 +49,6 @@ def build_parser():
     # option. We then call the parsed 'func' function, and execution carries on
     # from there.
     subparsers = parser.add_subparsers()
-
-    # create the parser for the configure subcommand. (authentication / etc.)
-    commands.config.parser(subparsers)
 
     # create the parser for the version subcommand.
     commands.version.parser(subparsers)

@@ -61,26 +61,33 @@ def get(args):
 
     job_scope = job['scope']
     if job_scope['typeName'] == 'courseContext':
-        content_with_id = 'Course: ' + job_scope['definition']['courseId']
+        scope_str = 'Course: ' + job_scope['definition']['courseId']
     elif job_scope['typeName'] == 'partnerContext':
-        content_with_id = 'Partner: ' + job_scope['definition']['partnerId']
+        scope_str = 'Partner: ' + job_scope['definition']['partnerId']
     elif job_scope['typeName'] == 'groupContext':
-        content_with_id = 'Group: ' + job_scope['definition']['groupId']
+        scope_str = 'Group: ' + job_scope['definition']['groupId']
+
+    export_type = job['exportType']
+
+    if export_type == 'RESEARCH_WITH_SCHEMAS':
+        schemas_str = 'Schemas: ' + ', '.join(job['schemaNames']) + '\n'
+    else:
+        schemas_str = ''
 
     creation_time = datetime.fromtimestamp(
             job['metadata']['createdAt']/1000.0).strftime('%c')
 
     download_link = job['downloadLink'] if 'downloadLink' in job else None
 
-    job_str = 'Job id: {}\n{}\nCreated: {}\nStatus: {}\nSchemas: {}\n' \
+    job_str = 'Job id: {}\n{}\nCreated: {}\nStatus: {}\n{}' \
         'Download Link: {}'
 
     print(job_str.format(
         job['id'],
-        content_with_id,
+        scope_str,
         creation_time,
         job['status'],
-        ', '.join(job['schemaNames']),
+        schemas_str,
         download_link))
 
 
@@ -101,7 +108,9 @@ def get_all(args):
             job['metadata']['createdAt']/1000.0).strftime(
                 '%Y-%m-%d %H:%M')
 
-        if len(job['schemaNames']) == len(api.SCHEMA_NAMES):
+        if 'schemaNames' not in job:
+            schema_names = ''
+        elif len(job['schemaNames']) == len(api.SCHEMA_NAMES):
             schema_names = 'all'
         else:
             schema_names = ','.join(job['schemaNames'])

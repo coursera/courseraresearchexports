@@ -1,5 +1,5 @@
 courseraresearchexports
-====================
+=======================
 
 .. image:: https://travis-ci.org/coursera/courseraresearchexports.svg
     :target: https://travis-ci.org/coursera/courseraresearchexports
@@ -22,7 +22,7 @@ https://pip.pypa.io/en/latest/installing.html#install-or-upgrade-pip
 Setup
 -----
 
-Authorize your application by running ``courseraresearchexports config authorize``
+Authorize your application using `courseraoauth2client <https://github.com/coursera/courseraoauth2client>`_ with ``courseraoauth2client config authorize --app manage-research-exports``
 
 
 Command Line Interface
@@ -34,22 +34,14 @@ The project includes a command line tool. Simply run::
 
 for a complete list of features, flags, and documentation.
 
+jobs
+^^^^
 
-config
-^^^^^^
-
-Configures the Coursera OAuth2 client library.
-
-Examples:
- - ``courseraresearchexports config authorize``
-
-   Configures the tool to go through the `authorization secret <https://tools.ietf.org/html/rfc6749#section-4.1>`_ flow for application ``manage-research-exports``.
- - ``courseraresearchexports config check-auth``
-
-   Checks whether the current instance can authorize against Coursera's API server for application ``manage-research-exports``
+containers
+^^^^^^^^^^
 
 Usage
------------
+-----
 
 
 Bugs / Issues / Feature Requests
