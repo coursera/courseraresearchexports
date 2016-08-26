@@ -16,14 +16,14 @@
 
 
 from courseraresearchexports.exports.api import COURSE_API, SCHEMA_NAMES,\
-    EXPORT_TYPES, ANONYMITY_LEVELS
+    EXPORT_TYPES, ANONYMITY_LEVELS, PARTNER_API, GROUP_API
 from urlparse import urlparse
 from tqdm import tqdm
 import requests
 import os
 import logging
 import zipfile
-import re
+
 
 
 def extract_export_archive(export_archive, dest, delete_archive=True):
@@ -79,8 +79,6 @@ def download_export(export_job, dest):
 def lookup_course_slug_by_id(course_id):
     """
     Find the course slug given an course_id
-    :param course_id:
-    :return:
     """
     response = requests.get(requests.compat.urljoin(COURSE_API, course_id))
     response.raise_for_status()
@@ -90,13 +88,46 @@ def lookup_course_slug_by_id(course_id):
 def lookup_course_id_by_slug(course_slug):
     """
     Find the course_id given a course_slug
-    :param course_slug:
-    :return:
     """
     payload = {'q': 'slug', 'slug': course_slug}
     response = requests.get(COURSE_API, params=payload)
     response.raise_for_status()
     return response.json()['elements'][0]['id']
+
+
+def lookup_partner_id_by_short_name(partner_short_name):
+    """
+    Find the partner_id by short name
+    """
+    payload = {'q': 'shortName', 'shortName': partner_short_name}
+    response = requests.get(COURSE_API, params=payload)
+    response.raise_for_status()
+    return response.json()['elements'][0]['id']
+
+
+def lookup_partner_short_name_by_id(partner_id):
+    """
+    Find the partner_id by short name
+    """
+    response = requests.get(requests.compat.urljoin(PARTNER_API, partner_id))
+    response.raise_for_status()
+    return response.json()['elements'][0]['slug']
+
+
+def get_scope_id_and_name_from_job(export_job):
+
+    job_scope = export_job['scope']
+    if job_scope['typeName'] == 'courseContext':
+        scope_id = job_scope['definition']['courseId']
+        scope_name = lookup_course_slug_by_id(scope_id)
+    elif job_scope['typeName'] == 'partnerContext':
+        scope_id = job_scope['definition']['partnerId']['maestroId']
+        scope_name = lookup_partner_short_name_by_id(scope_id)
+    elif job_scope['typeName'] == 'groupContext':
+        scope_id = job_scope['definition']['groupId']
+        scope_name = scope_id
+
+    return scope_id, scope_name
 
 
 def create_export_job_json(**kwargs):
@@ -105,9 +136,11 @@ def create_export_job_json(**kwargs):
     courseID -- Unique identifier for course assigned by Coursera
     courseSlug -- Unique name for course assigned by Coursera
     partnerId -- Identifier for partner institution
+    partnerShortName -- Identifier for partner institution
     groupId -- Identifier for group
     exportType -- Currently only RESEARCH_WITH_SCHEMAS
     schemaNames -- for RESEARCH_WITH_SCHEMAS datatypes to be exported
+    interval -- dates to export when exporting RESEARCH_EVENTING
     anonymityLevel -- Level of user ID hashing
     statementOfPurpose -- Statement for usage of this export data
     """
@@ -118,34 +151,37 @@ def create_export_job_json(**kwargs):
             'typeName': 'courseContext',
             'definition': {
                 'courseId': kwargs.get('courseId')
-            }
-        }
+            }}
     elif kwargs.get('courseSlug'):
         request['scope'] = {
             'typeName': 'courseContext',
             'definition': {
                 'courseId': lookup_course_id_by_slug(kwargs.get('courseSlug'))
-            }
-        }
+            }}
     elif kwargs.get('partnerId'):
         request['scope'] = {
             'typeName': 'partnerContext',
             'definition': {
                 'partnerId': {
                     'maestroId': kwargs.get('partnerId')
-                }
-            }
-        }
+                }}}
+    elif kwargs.get('partnerShortName'):
+        request['scope'] = {
+            'typeName': 'partnerContext',
+            'definition': {
+                'partnerId': {
+                    'maestroId': lookup_partner_id_by_short_name(
+                        kwargs.get('partnerShortName'))
+                }}}
     elif kwargs.get('groupId'):
         request['scope'] = {
             'typeName': 'groupContext',
             'definition': {
-                'partnerId': kwargs.get('groupId')
-            }
-        }
+                'groupId': kwargs.get('groupId')
+            }}
     else:
         raise ValueError('One of courseId, courseSlug, partnerId, '
-                         'or groupID must be specified')
+                         'partnerShortName, or groupID must be specified')
 
     request['exportType'] = kwargs.get('exportType')
     if request['exportType'] == 'RESEARCH_WITH_SCHEMAS':
@@ -160,6 +196,7 @@ def create_export_job_json(**kwargs):
         else:
             raise ValueError('Anonymity levels must be in [{}]'.format(
                 ', '.join(ANONYMITY_LEVELS)))
+
     elif request['exportType'] == 'RESEARCH_EVENTING':
 
         request['anonymityLevel'] = 'HASHED_IDS_NO_PII'
@@ -170,6 +207,7 @@ def create_export_job_json(**kwargs):
         # verify dates?
         if kwargs.get('interval'):
             request['interval'] = kwargs.get('interval')
+
     else:
         raise ValueError('Export type must be in [{}]'.format(
             ', '.join(EXPORT_TYPES)))
@@ -180,4 +218,3 @@ def create_export_job_json(**kwargs):
         raise ValueError('Statement of purpose must be specified')
 
     return request
-

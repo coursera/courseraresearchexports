@@ -51,13 +51,7 @@ def get(args):
     """
     job = api.get(args.id)
 
-    job_scope = job['scope']
-    if job_scope['typeName'] == 'courseContext':
-        scope_str = 'Course: ' + job_scope['definition']['courseId']
-    elif job_scope['typeName'] == 'partnerContext':
-        scope_str = 'Partner: ' + job_scope['definition']['partnerId']
-    elif job_scope['typeName'] == 'groupContext':
-        scope_str = 'Group: ' + job_scope['definition']['groupId']
+    scope_id, scope_name = utils.get_scope_id_and_name_from_job(job)
 
     export_type = job['exportType']
 
@@ -71,12 +65,14 @@ def get(args):
 
     download_link = job['downloadLink'] if 'downloadLink' in job else None
 
-    job_str = 'Job id: {}\n{}\nCreated: {}\nStatus: {}\n{}' \
-        'Download Link: {}'
+    job_str = 'Job id: {}\nScope id: {}\nScope name: {}\nType: {}\n' \
+              'Created: {}\nStatus: {}\n{}Download Link: {}'
 
     print(job_str.format(
         job['id'],
-        scope_str,
+        scope_id,
+        scope_name,
+        job['exportType'],
         creation_time,
         job['status'],
         schemas_str,
@@ -90,29 +86,38 @@ def get_all(args):
     export_jobs = api.get_all()
 
     # print out jobs by creation date
-    print('\t'.join(["Time", "ExportID", "Status", "Schemas"]).expandtabs(18))
+    template = "{0:12}{1:12}{2:10}{3:25}{4:12}{5:18}"
+    print(template.format("Time", "ExportID", "Type",
+                          "Scope", "Status", "Schemas"))
     for job in sorted(
             export_jobs,
             key=lambda x: x['metadata']['createdAt'],
             reverse=True):
 
         creation_time = datetime.fromtimestamp(
-            job['metadata']['createdAt']/1000.0).strftime(
-                '%Y-%m-%d %H:%M')
+            job['metadata']['createdAt']/1000.0).strftime('%Y-%m-%d')
 
-        if 'schemaNames' not in job:
-            schema_names = ''
+        if job['exportType'] == 'RESEARCH_EVENTING':
+            schema_names = 'events'
         elif len(job['schemaNames']) == len(api.SCHEMA_NAMES):
             schema_names = 'all'
         else:
             schema_names = ','.join(job['schemaNames'])
 
-        print('\t'.join([
+        if job['exportType'] == 'RESEARCH_WITH_SCHEMAS':
+            export_type = 'schemas'
+        else:
+            export_type = 'eventing'
+
+        _, scope_name = utils.get_scope_id_and_name_from_job(job)
+
+        print(template.format(
             creation_time,
             job['id'],
+            export_type,
+            scope_name,
             job['status'],
-            schema_names
-        ]).expandtabs(18))
+            schema_names))
 
 
 def parser(subparsers):
@@ -137,6 +142,9 @@ def parser(subparsers):
         'learning for https://www.coursera.org/learn/machine-learning)')
     scope_subparser.add_argument(
         '--partnerId',
+        help='Export rows corresponding to learners within a partner')
+    scope_subparser.add_argument(
+        '--partnerShortName',
         help='Export rows corresponding to learners within a partner')
     scope_subparser.add_argument(
         '--groupId',

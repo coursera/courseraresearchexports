@@ -21,6 +21,7 @@ import json
 RESEARCH_EXPORTS_APP = 'manage_research_exports'
 RESEARCH_EXPORTS_API = 'https://www.coursera.org/api/onDemandExports.v2/'
 COURSE_API = 'https://www.coursera.org/api/onDemandCourses.v1/'
+PARTNER_API = 'https://www.coursera.org/api/partners.v1/'
 
 ANONYMITY_LEVELS = ['HASHED_IDS_WITH_ISOLATED_UGC_NO_PII', 'HASHED_IDS_NO_PII']
 EXPORT_TYPES = ['RESEARCH_WITH_SCHEMAS', 'RESEARCH_EVENTING']
