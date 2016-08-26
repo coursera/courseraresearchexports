@@ -14,16 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraoauth2client import oauth2
-
-import courseraresearchexports.exports.constants
+from courseraresearchexports.exports.constants import SCHEMA_NAMES, \
+    EXPORT_TYPES, ANONYMITY_LEVELS
 from courseraresearchexports.exports import api
 from courseraresearchexports.exports import utils
 from datetime import datetime
-import requests
 import json
 import argparse
-import logging
 
 
 def download(args):
@@ -101,16 +98,19 @@ def get_all(args):
 
         if job['exportType'] == 'RESEARCH_EVENTING':
             schema_names = 'events'
-        elif len(job['schemaNames']) == len(
-                courseraresearchexports.exports.constants.SCHEMA_NAMES):
+        elif job['exportType'] == 'GRADEBOOK':
+            schema_names = 'gradebook'
+        elif len(job['schemaNames']) == len(SCHEMA_NAMES):
             schema_names = 'all'
         else:
             schema_names = ','.join(job['schemaNames'])
 
         if job['exportType'] == 'RESEARCH_WITH_SCHEMAS':
             export_type = 'schemas'
-        else:
+        elif job['exportType'] == 'RESEARCH_WITH_EVENTING':
             export_type = 'eventing'
+        else:
+            export_type = 'gradebook'
 
         _, scope_name = utils.get_scope_id_and_name_from_job(job)
 
@@ -154,19 +154,19 @@ def parser(subparsers):
         help='Export rows corresponding to learners without a group')
     create_subparser.add_argument(
         '--exportType',
-        choices=courseraresearchexports.exports.constants.EXPORT_TYPES,
-        default=courseraresearchexports.exports.constants.EXPORT_TYPES[0],
+        choices=EXPORT_TYPES,
+        default=EXPORT_TYPES[0],
         help='Course data is provided with RESEARCH_WITH_SCHEMAS and '
         'clickstream data is exported with RESEARCH_EVENTING.'
         'schemaNames must be specified for RESEARCH_WITH_SCHEMAS and '
         'interval must be specified for RESEARCH_EVENTING')
     create_subparser.add_argument(
         '--schemaNames',
-        choices=courseraresearchexports.exports.constants.SCHEMA_NAMES,
+        choices=SCHEMA_NAMES,
         nargs='+',
-        default=courseraresearchexports.exports.constants.SCHEMA_NAMES,
+        default=SCHEMA_NAMES,
         help='Data types to be exported. Any combination of: ' +
-        ', '.join(courseraresearchexports.exports.constants.SCHEMA_NAMES))
+        ', '.join(SCHEMA_NAMES))
     create_subparser.add_argument(
         '--interval',
         nargs=2,
@@ -175,8 +175,8 @@ def parser(subparsers):
         '(i.e. 2016-08-01 2016-08-04)')
     create_subparser.add_argument(
         '--anonymityLevel',
-        choices=courseraresearchexports.exports.constants.ANONYMITY_LEVELS,
-        default=courseraresearchexports.exports.constants.ANONYMITY_LEVELS[0],
+        choices=ANONYMITY_LEVELS,
+        default=ANONYMITY_LEVELS[0],
         help='One of HASHED_IDS_NO_PII or HASHED_IDS_WITH_ISOLATED_UGC_NO_PII.'
         ' If you are a data coordinator, you may request HASHED_IDS_NO_PII')
     create_subparser.add_argument(

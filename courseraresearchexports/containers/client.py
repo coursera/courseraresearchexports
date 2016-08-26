@@ -14,6 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Coursera's tools for managing docker containers configured with a
+postgres database.
+"""
+
 from courseraresearchexports.containers import utils
 from courseraresearchexports import exports
 import logging
@@ -54,8 +59,6 @@ def list_all(docker_client):
 def start(container, docker_client):
     """
     Start a docker container containing a research export database. Waits until
-    :param container:
-    :param docker_client:
     """
     logging.info('Starting containers...')
     docker_client.start(container)
@@ -68,19 +71,13 @@ def start(container, docker_client):
 def stop(container, docker_client):
     """
     Stops a docker container
-    :param container:
-    :param docker_client:
-    :return:
     """
     docker_client.stop(container)
 
 
 def remove(container, docker_client):
     """
-    Remove a container
-    :param container:
-    :param docker_client:
-    :return:
+    Remove a stopped container
     """
     docker_client.remove_container(container)
 
@@ -98,7 +95,6 @@ def create_from_folder(
     :param database_name:
     :return: container
     """
-
     try:
         if not docker_client.images(name=POSTGRES_DOCKER_IMAGE):
             logging.warn('Downloading image: {}'.format(POSTGRES_DOCKER_IMAGE))
@@ -131,7 +127,7 @@ def create_from_folder(
         '''.format('postgres', database_name)
 
         docker_client.put_archive(
-            container,  # using a named argument here causes check_resource err
+            container,  # using a named argument here causes NullResource error
             path='/docker-entrypoint-initdb.d/',
             data=utils.create_tar_archive(
                 database_setup_script, name='init-user-db.sh'))
@@ -148,7 +144,7 @@ def create_from_folder(
         return container
 
     except:
-        logging.error('Error setting up containers:')
+        logging.error('Error setting up container')
         raise
 
 

@@ -27,7 +27,7 @@ def get_container_host_port(container, docker_client):
     Find bound host port to postgres port
     :param container:
     :param docker_client:
-    :return:
+    :return port:
     """
     container_info = docker_client.inspect_container(container)
     return int(

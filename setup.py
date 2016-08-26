@@ -31,7 +31,7 @@ setup(
         'courseraoauth2client>=0.0.1',
         'requests>=2.7.0',
         'docker-py>=1.2.3',
-        'tqdm>= 4.8.4',
+        'tqdm>=4.8.4',
         'psycopg2'
     ],
     test_suite='nose.collector',

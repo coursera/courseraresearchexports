@@ -1,6 +1,6 @@
 __all__ = [
-  "client",
-  "utils"
+    "utils",
+    "client"
 ]
 
 from . import *  # noqa
