@@ -16,7 +16,7 @@
 
 
 from courseraresearchexports.exports.api import COURSE_API, SCHEMA_NAMES,\
-    EXPORT_TYPES, ANONYMITY_LEVELS, PARTNER_API, GROUP_API
+    EXPORT_TYPES, ANONYMITY_LEVELS, PARTNER_API
 from urlparse import urlparse
 from tqdm import tqdm
 import requests
