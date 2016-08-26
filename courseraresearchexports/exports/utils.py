@@ -15,15 +15,14 @@
 # limitations under the License.
 
 
-from courseraresearchexports.exports.api import COURSE_API, SCHEMA_NAMES,\
-    EXPORT_TYPES, ANONYMITY_LEVELS, PARTNER_API
+from courseraresearchexports.exports.constants import COURSE_API, PARTNER_API,\
+    ANONYMITY_LEVELS, EXPORT_TYPES, SCHEMA_NAMES
 from urlparse import urlparse
 from tqdm import tqdm
 import requests
 import os
 import logging
 import zipfile
-
 
 
 def extract_export_archive(export_archive, dest, delete_archive=True):
@@ -53,8 +52,12 @@ def download_export(export_job, dest):
     :param dest:
     :return:
     """
-    if 'downloadLink' not in export_job:
+    if export_job['exportType'] == 'RESEARCH_WITH_EVENTING':
+        logging.error('Generate download links to download eventing exports')
+        raise ValueError('Require RESEARCH_WITH_SCHEMAS job')
+    elif 'downloadLink' not in export_job:
         logging.error('Export job {} is not ready'.format(export_job['id']))
+        raise ValueError('Export job is not yet ready for download')
 
     if not os.path.exists(dest):
         os.makedirs(dest)
