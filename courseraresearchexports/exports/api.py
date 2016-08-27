@@ -14,12 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-import requests
 from courseraoauth2client import oauth2
-
 from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
     RESEARCH_EXPORTS_API
+import json
+import requests
 
 
 def get(export_job_id):

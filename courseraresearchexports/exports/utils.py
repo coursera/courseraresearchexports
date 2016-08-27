@@ -117,23 +117,25 @@ def lookup_partner_short_name_by_id(partner_id):
     return response.json()['elements'][0]['slug']
 
 
-def get_scope_id_and_name_from_job(export_job):
-
+def get_scope_id_from_job(export_job):
     job_scope = export_job['scope']
     if job_scope['typeName'] == 'courseContext':
         scope_id = job_scope['definition']['courseId']
-        scope_name = lookup_course_slug_by_id(scope_id)
     elif job_scope['typeName'] == 'partnerContext':
         scope_id = job_scope['definition']['partnerId']['maestroId']
-        scope_name = lookup_partner_short_name_by_id(scope_id)
     elif job_scope['typeName'] == 'groupContext':
         scope_id = job_scope['definition']['groupId']
-        scope_name = scope_id
+    else:
+        scope_id = 'unknown'
 
-    return scope_id, scope_name
+    return scope_id
 
 
-def create_export_job_json(**kwargs):
+def remove_empty_fields(request):
+    return {field: value for (field, value) in request.items() if value}
+
+
+def build_export_job_json(**kwargs):
     """Creates json body for On Demand Research Exports request.
     Keyword arguments:
     courseID -- Unique identifier for course assigned by Coursera
@@ -182,42 +184,12 @@ def create_export_job_json(**kwargs):
             'definition': {
                 'groupId': kwargs.get('groupId')
             }}
-    else:
-        raise ValueError('One of courseId, courseSlug, partnerId, '
-                         'partnerShortName, or groupID must be specified')
 
     request['exportType'] = kwargs.get('exportType')
-    if request['exportType'] == 'RESEARCH_WITH_SCHEMAS':
+    request['schemaNames'] = kwargs.get('schemaNames')
+    request['anonymityLevel'] = kwargs.get('anonymityLevel')
+    request['ignoreExisting'] = kwargs.get('ignoreExisting')
+    request['interval'] = kwargs.get('interval')
+    request['statementOfPurpose'] = kwargs.get('statementOfPurpose')
 
-        if kwargs.get('schemaNames'):
-            request['schemaNames'] = kwargs.get('schemaNames')
-        else:
-            request['schemaNames'] = SCHEMA_NAMES
-
-        if kwargs.get('anonymityLevel'):
-            request['anonymityLevel'] = kwargs.get('anonymityLevel')
-        else:
-            raise ValueError('Anonymity levels must be in [{}]'.format(
-                ', '.join(ANONYMITY_LEVELS)))
-
-    elif request['exportType'] == 'RESEARCH_EVENTING':
-
-        request['anonymityLevel'] = 'HASHED_IDS_NO_PII'
-
-        if kwargs.get('ignoreExisting'):
-            request['ignoreExisting'] = kwargs.get('ignoreExisting')
-
-        # verify dates?
-        if kwargs.get('interval'):
-            request['interval'] = kwargs.get('interval')
-
-    else:
-        raise ValueError('Export type must be in [{}]'.format(
-            ', '.join(EXPORT_TYPES)))
-
-    if kwargs.get('statementOfPurpose'):
-        request['statementOfPurpose'] = kwargs.get('statementOfPurpose')
-    else:
-        raise ValueError('Statement of purpose must be specified')
-
-    return request
+    return remove_empty_fields(request)

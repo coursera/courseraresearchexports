@@ -17,24 +17,24 @@
 from courseraresearchexports.containers import client
 from courseraresearchexports import utils
 from datetime import datetime
+import logging
 
 
 def create_container(args):
     """
     Create a container containing a postgres database using an export job id.
-     Export job will be downloaded and loaded into dockerized databse.
-     Automatically starts container.
+    Export job will be downloaded and loaded into dockerized databse.
+    Automatically starts container.
     """
     try:
         d = utils.docker_client(args)
         container = client.create_from_export_job_id(
             export_job_id=args.exportJobId, docker_client=d)
-
-        print('Successfully created container {}'.format(container['Id']))
+        logging.info('Created container %s', container['Id'])
 
     except:
-        print('Error creating container.')
-
+        logging.error('Error creating container with job %s', args.exportJobId)
+        raise
 
 def list_containers(args):
     """
