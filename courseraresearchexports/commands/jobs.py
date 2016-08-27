@@ -14,113 +14,111 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.exports.constants import SCHEMA_NAMES, \
-    EXPORT_TYPES, ANONYMITY_LEVELS
-from courseraresearchexports.exports import api
-from courseraresearchexports.exports import utils
+from courseraresearchexports import exports
 from datetime import datetime
+from requests.exceptions import HTTPError
+from tabulate import tabulate
 import json
 import argparse
+import logging
+import sys
 
 
 def download(args):
     """
-    Download research export job using a job id.
+    Download a data export job using a job id.
     """
-    job = api.get(args.id)
-    utils.download_export(job, args.dest)
+    job = exports.api.get(args.id)
+    exports.utils.download_export(job, args.dest)
 
 
 def create(args):
     """
-    Creates a post request to Coursera's research exports service
-     with specified parameters
+    Create and send an data export request with Coursera.
     """
-    export_job_json = utils.create_export_job_json(**vars(args))
-    export_job_id = api.create(export_job_json)
+    export_job_json = exports.utils.build_export_job_json(**vars(args))
+    export_job_id = exports.api.create(export_job_json)
 
-    print('Successfully created job {}:\n{}'.format(
-        export_job_id,
-        json.dumps(export_job_json, indent=2)))
+    logging.info('Successfully created job %(id)s:\n%(json)s', {
+        'id': export_job_id,
+        'json': json.dumps(export_job_json, indent=2)
+    })
 
 
 def get(args):
     """
-    Get status of a research export job using a job id.
+    Get the details and status of a data export request using a job id.
     """
-    job = api.get(args.id)
+    try:
+        export_job = exports.api.get(args.id)
+    except HTTPError as err:
+        logging.error('Export job %s could not found.\n%s', args.id, err)
+        sys.exit(1)
 
-    scope_id, scope_name = utils.get_scope_id_and_name_from_job(job)
+    export_job_info = [['Export Job Id:', args.id]]
 
-    export_type = job['exportType']
+    scope_id = exports.utils.get_scope_id_from_job(export_job)
+    export_job_info.append(['Scope Id:', scope_id])
 
-    if export_type == 'RESEARCH_WITH_SCHEMAS':
-        schemas_str = 'Schemas: ' + ', '.join(job['schemaNames']) + '\n'
-    else:
-        schemas_str = ''
+    export_type = export_job['exportType']
+    export_job_info.append(['Export Type:', export_type])
 
     creation_time = datetime.fromtimestamp(
-            job['metadata']['createdAt']/1000.0).strftime('%c')
+        export_job['metadata']['createdAt'] / 1000.0).strftime('%c')
+    export_job_info.append(['Created:', creation_time])
 
-    download_link = job['downloadLink'] if 'downloadLink' in job else None
+    export_job_info.append(['Status:', export_job['status']])
 
-    job_str = 'Job id: {}\nScope id: {}\nScope name: {}\nType: {}\n' \
-              'Created: {}\nStatus: {}\n{}Download Link: {}'
+    if export_type == exports.constants.EXPORT_TYPE_SCHEMAS:
+        schemas = ', '.join(export_job['schemaNames'])
+        export_job_info.append(['Schemas:', schemas])
 
-    print(job_str.format(
-        job['id'],
-        scope_id,
-        scope_name,
-        job['exportType'],
-        creation_time,
-        job['status'],
-        schemas_str,
-        download_link))
+    if 'downloadLink' in export_job:
+        export_job_info.append(['Download Link:', export_job['downloadLink']])
+
+    logging.info('\n' + tabulate(export_job_info, tablefmt="plain"))
 
 
 def get_all(args):
     """
-    Get status of all research export jobs that you have requested.
+    Get the details and status of your data export requests.
     """
-    export_jobs = api.get_all()
+    try:
+        export_jobs = exports.api.get_all()
+    except HTTPError as err:
+        logging.error('Export jobs couldn\'t be loaded.\n%s', err)
+        sys.exit(1)
 
-    # print out jobs by creation date
-    template = "{0:12}{1:12}{2:10}{3:25}{4:12}{5:18}"
-    print(template.format("Time", "ExportID", "Type",
-                          "Scope", "Status", "Schemas"))
-    for job in sorted(
-            export_jobs,
-            key=lambda x: x['metadata']['createdAt'],
-            reverse=True):
+    export_jobs_table = [['Created', 'Job Id', 'Status', 'Type', 'Scope',
+                          'Schemas']]
+    for export_job in sorted(export_jobs,
+                             key=lambda x: x['metadata']['createdAt'],
+                             reverse=True):
 
         creation_time = datetime.fromtimestamp(
-            job['metadata']['createdAt']/1000.0).strftime('%Y-%m-%d')
+                export_job['metadata']['createdAt']/1000.0
+                ).strftime('%Y-%m-%d')
 
-        if job['exportType'] == 'RESEARCH_EVENTING':
-            schema_names = 'events'
-        elif job['exportType'] == 'GRADEBOOK':
-            schema_names = 'gradebook'
-        elif len(job['schemaNames']) == len(SCHEMA_NAMES):
-            schema_names = 'all'
+        if export_job['exportType'] == exports.constants.EXPORT_TYPE_EVENTING:
+            schemas = 'events'
+        elif export_job['exportType'] == \
+                exports.constants.EXPORT_TYPE_GRADEBOOK:
+            schemas = 'gradebook'
+        elif len(export_job['schemaNames']) == \
+                len(exports.constants.SCHEMA_NAMES):
+            schemas = 'all'
         else:
-            schema_names = ','.join(job['schemaNames'])
+            schemas = ','.join(export_job['schemaNames'])
 
-        if job['exportType'] == 'RESEARCH_WITH_SCHEMAS':
-            export_type = 'schemas'
-        elif job['exportType'] == 'RESEARCH_WITH_EVENTING':
-            export_type = 'eventing'
-        else:
-            export_type = 'gradebook'
-
-        _, scope_name = utils.get_scope_id_and_name_from_job(job)
-
-        print(template.format(
+        export_jobs_table.append([
             creation_time,
-            job['id'],
-            export_type,
-            scope_name,
-            job['status'],
-            schema_names))
+            export_job['id'],
+            export_job['status'],
+            export_job['exportType'],
+            exports.utils.get_scope_id_from_job(export_job),
+            schemas])
+
+    logging.info('\n' + tabulate(export_jobs_table, headers='firstrow'))
 
 
 def parser(subparsers):
@@ -130,78 +128,12 @@ def parser(subparsers):
 
     jobs_subparsers = parser_jobs.add_subparsers()
 
-    create_subparser = argparse.ArgumentParser(add_help=False)
-    scope_subparser = create_subparser.add_mutually_exclusive_group(
-        required=True)
-    scope_subparser.add_argument(
-        '--courseId',
-        help='Export rows corresponding to learners within a course '
-        'according to the unique id assigned by Coursera.')
-    scope_subparser.add_argument(
-        '--courseSlug',
-        help='Export rows corresponding to learners within a course '
-        'according to the unique name of your course defined as '
-        'the part after /learn in the course url. (e.g. machine-'
-        'learning for https://www.coursera.org/learn/machine-learning)')
-    scope_subparser.add_argument(
-        '--partnerId',
-        help='Export rows corresponding to learners within a partner')
-    scope_subparser.add_argument(
-        '--partnerShortName',
-        help='Export rows corresponding to learners within a partner')
-    scope_subparser.add_argument(
-        '--groupId',
-        help='Export rows corresponding to learners without a group')
-    create_subparser.add_argument(
-        '--exportType',
-        choices=EXPORT_TYPES,
-        default=EXPORT_TYPES[0],
-        help='Course data is provided with RESEARCH_WITH_SCHEMAS and '
-        'clickstream data is exported with RESEARCH_EVENTING.'
-        'schemaNames must be specified for RESEARCH_WITH_SCHEMAS and '
-        'interval must be specified for RESEARCH_EVENTING')
-    create_subparser.add_argument(
-        '--schemaNames',
-        choices=SCHEMA_NAMES,
-        nargs='+',
-        default=SCHEMA_NAMES,
-        help='Data types to be exported. Any combination of: ' +
-        ', '.join(SCHEMA_NAMES))
-    create_subparser.add_argument(
-        '--interval',
-        nargs=2,
-        metavar=('START', 'END'),
-        help='Interval of RESEARCH_EVENTING data to be expordtd '
-        '(i.e. 2016-08-01 2016-08-04)')
-    create_subparser.add_argument(
-        '--anonymityLevel',
-        choices=ANONYMITY_LEVELS,
-        default=ANONYMITY_LEVELS[0],
-        help='One of HASHED_IDS_NO_PII or HASHED_IDS_WITH_ISOLATED_UGC_NO_PII.'
-        ' If you are a data coordinator, you may request HASHED_IDS_NO_PII')
-    create_subparser.add_argument(
-        '--statementOfPurpose',
-        required=True,
-        help='To help us scale our research efforts and provide you with '
-        'better data tools, please let us know how you plan to use the data, '
-        'what types of research questions you\'re asking, who will be working '
-        'with the data primarily, and with whom you plan to share it.')
-    create_subparser.add_argument(
-        '--ignoreExisting',
-        action='store_true',
-        help='If flag is set, we will recompute clickstream data all dates in '
-        'interval. Otherwise, if the selected interval consists of days that '
-        'we have previously computed clickstream data for, we skip these days')
-    parser_create = jobs_subparsers.add_parser(
-        'create',
-        help=create.__doc__,
-        parents=[create_subparser])
-    parser_create.set_defaults(func=create)
+    create_parser(jobs_subparsers)
 
-    parser_getAll = jobs_subparsers.add_parser(
+    parser_get_all = jobs_subparsers.add_parser(
         'getAll',
         help=get_all.__doc__)
-    parser_getAll.set_defaults(func=get_all)
+    parser_get_all.set_defaults(func=get_all)
 
     parser_get = jobs_subparsers.add_parser(
         'get',
@@ -227,3 +159,97 @@ def parser(subparsers):
         help='Destination folder')
 
     return parser_jobs
+
+
+def create_parser(subparsers):
+
+    parser_create = subparsers.add_parser(
+        'create',
+        help=create.__doc__)
+    parser_create.set_defaults(func=create)
+    create_subparsers = parser_create.add_subparsers()
+
+    # common arguments between schema and eventing exports
+    create_args_subparser = argparse.ArgumentParser(add_help=False)
+
+    scope_subparser = create_args_subparser.add_mutually_exclusive_group(
+        required=True)
+    scope_subparser.add_argument(
+        '--courseId',
+        help='Export rows corresponding to learners within a course '
+             'according to the unique id assigned by Coursera.')
+    scope_subparser.add_argument(
+        '--courseSlug',
+        help='Export rows corresponding to learners within a course '
+             'according to the unique name of your course defined as '
+             'the part after /learn in the course url. (e.g. machine-'
+             'learning for https://www.coursera.org/learn/machine-learning)')
+    scope_subparser.add_argument(
+        '--partnerId',
+        help='Export rows corresponding to learners within a partner')
+    scope_subparser.add_argument(
+        '--partnerShortName',
+        help='Export rows corresponding to learners within a partner')
+    scope_subparser.add_argument(
+        '--groupId',
+        help='Export rows corresponding to learners without a group')
+
+    create_args_subparser.add_argument(
+        '--anonymityLevel',
+        choices=exports.constants.ANONYMITY_LEVELS,
+        default=exports.constants.ANONYMITY_LEVEL_ISOLATED,
+        help='{0} corresponds to data coordinator exports. '
+             '{1} has different user id columns in every domain.'.format(
+                exports.constants.ANONYMITY_LEVEL_COORDINATOR,
+                exports.constants.ANONYMITY_LEVEL_ISOLATED))
+    create_args_subparser.add_argument(
+        '--statementOfPurpose',
+        required=True,
+        help='Please let us know how you plan to use the '
+             'data, what types of research questions you\'re asking, who will '
+             'be working with the data primarily, and with whom you plan to '
+             'share it.')
+
+    # schemas subcommand
+    parser_schemas = create_subparsers.add_parser(
+        'schemas',
+        help='Create a data export request from defined schemas.',
+        parents=[create_args_subparser])
+
+    parser_schemas.add_argument(
+        '--exportType',
+        default=exports.constants.EXPORT_TYPE_SCHEMAS,
+        help=argparse.SUPPRESS)
+
+    parser_schemas.add_argument(
+        '--schemaNames',
+        choices=exports.constants.SCHEMA_NAMES,
+        nargs='+',
+        default=exports.constants.SCHEMA_NAMES,
+        help='Data schemas to export. Any combination of: ' +
+             ', '.join(exports.constants.SCHEMA_NAMES))
+
+    # eventing subcommand
+    parser_eventing = create_subparsers.add_parser(
+        'eventing',
+        help='Create a data export request for clickstream data.',
+        parents=[create_args_subparser])
+
+    parser_eventing.add_argument(
+        '--exportType',
+        default=exports.constants.EXPORT_TYPE_EVENTING,
+        help=argparse.SUPPRESS)
+
+    parser_eventing.add_argument(
+        '--interval',
+        nargs=2,
+        metavar=('START', 'END'),
+        help='Interval of {} data to be exported(i.e. 2016-08-01 2016-08-04). '
+             'By default this will be the past day.'
+             .format(exports.constants.EXPORT_TYPE_EVENTING))
+
+    parser_eventing.add_argument(
+        '--ignoreExisting',
+        action='store_true',
+        help='If flag is set, we will recompute clickstream data for all dates '
+             'in the interval. Otherwise, previously computed days are skipped.')

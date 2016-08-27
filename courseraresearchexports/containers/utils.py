@@ -22,14 +22,13 @@ def create_tar_archive(str, name='init-user-db.sh'):
     return archive_tarstream
 
 
-def get_container_host_port(container, docker_client):
+def get_container_host_ip_and_port(container, docker_client):
     """
     Find bound host port to postgres port
     :param container:
     :param docker_client:
-    :return port:
+    :return ip, port:
     """
     container_info = docker_client.inspect_container(container)
-    return int(
-        container_info['HostConfig']['PortBindings']['5432/tcp'][0]['HostPort']
-    )
+    port_bindings = container_info['NetworkSettings']['Ports']['5432/tcp'][0]
+    return port_bindings['HostIp'], int(port_bindings['HostPort'])

@@ -38,10 +38,10 @@ def get_next_available_port(docker_client):
     """
     Find next available port to map postgres port to host
     :param docker_client:
-    :return:
+    :return port:
     """
     containers = list_all(docker_client)
-    ports = [utils.get_container_host_port(container, docker_client)
+    ports = [utils.get_container_host_ip_and_port(container, docker_client)[1]
              for container in containers]
 
     return max(ports) + 1 if ports else 5433
@@ -64,6 +64,7 @@ def start(container, docker_client):
     docker_client.start(container)
     # poll logs to see if database is ready to accept connections
     while POSTGRES_READY_MSG not in docker_client.logs(container, tail=4):
+        logging.debug('Polling container for database connection...')
         time.sleep(1)
     logging.info('Container ready.')
 
@@ -93,7 +94,7 @@ def create_from_folder(
     :param docker_client:
     :param container_name:
     :param database_name:
-    :return: container
+    :return container:
     """
     try:
         if not docker_client.images(name=POSTGRES_DOCKER_IMAGE):
@@ -106,6 +107,8 @@ def create_from_folder(
                 container_name))
             docker_client.remove_container(existingContainer, force=True)
 
+        logging.debug('Creating containers from {folder}'.format(
+            folder=export_data_folder))
         container = docker_client.create_container(
             image=POSTGRES_DOCKER_IMAGE,
             name=container_name,
@@ -120,11 +123,11 @@ def create_from_folder(
 
         # copy containers initialization script to entrypoint
         database_setup_script = '''
-            createdb -U {0} {1}
+            createdb -U {user} {db}
             cd /mnt/exportData
-            psql -e -U {0} -d {1} -f setup.txt
-            psql -e -U {0} -d {1} -f load.txt
-        '''.format('postgres', database_name)
+            psql -e -U {user} -d {db} -f setup.sql
+            psql -e -U {user} -d {db} -f load.sql
+        '''.format(user='postgres', db=database_name)
 
         docker_client.put_archive(
             container,  # using a named argument here causes NullResource error
@@ -138,6 +141,7 @@ def create_from_folder(
         # hack to see check if container initialization is done
         logging.info('Initializing container...')
         while POSTGRES_INIT_MSG not in docker_client.logs(container, tail=20):
+            logging.debug('Polling data for entrypoint initialization...')
             time.sleep(1)
         logging.info('Initialization done.')
 

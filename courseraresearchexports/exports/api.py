@@ -14,17 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-import requests
 from courseraoauth2client import oauth2
-
 from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
     RESEARCH_EXPORTS_API
+import requests
 
 
 def get(export_job_id):
     """
-    Uses Coursera API to get an export job given an export job id
+    Use Coursera's Research Export Resource to get a data export job given an
+    export job id.
     :param export_job_id:
     :return export_job:
     """
@@ -40,8 +39,8 @@ def get(export_job_id):
 
 def get_all():
     """
-    Uses Coursera's export API to get all export jobs created by a user.
-     Coursera's export job resource limits this to the 100 most recent jobs.
+    Uses Coursera's Research Exports Resource to get all data export job
+    requests created by a user. Limited to the 100 most recent requests.
     :return export_jobs:
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
@@ -50,14 +49,14 @@ def get_all():
         auth=auth,
         params={'q': 'my'})
     response.raise_for_status()
-    export_jobs = json.loads(json.dumps(response.json()))['elements']
+    export_jobs = response.json()['elements']
 
     return export_jobs
 
 
 def create(export_job_json):
     """
-    Creates a Coursera research export job using a formatted json request.
+    Creates a data export job using a formatted json request.
     :param export_job_json:
     :return export_job_id:
     """

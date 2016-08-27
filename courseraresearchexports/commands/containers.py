@@ -14,66 +14,81 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.containers import client
-from courseraresearchexports import utils
+from courseraresearchexports.containers import client, utils
+from courseraresearchexports.utils import docker_client
 from datetime import datetime
+from tabulate import tabulate
+import logging
+import sys
 
 
 def create_container(args):
     """
     Create a container containing a postgres database using an export job id.
-     Export job will be downloaded and loaded into dockerized databse.
-     Automatically starts container.
+    Export job will be downloaded and loaded into dockerized database.
+    Automatically starts container.
     """
     try:
-        d = utils.docker_client(args)
+        d = docker_client(args)
         container = client.create_from_export_job_id(
             export_job_id=args.exportJobId, docker_client=d)
+        logging.info('Created container %s', container['Id'])
 
-        print('Successfully created container {}'.format(container['Id']))
-
-    except:
-        print('Error creating container.')
+    except Exception as e:
+        logging.error('Error creating container with job %s:\n%s',
+                      args.exportJobId, e)
+        sys.exit(1)
 
 
 def list_containers(args):
     """
-    List docker containers with Coursera research exports
+    List docker containers created with Coursera data exports.
     """
-    d = utils.docker_client(args)
+    d = docker_client(args)
     containers = client.list_all(docker_client=d)
-    print('Name\tCreated\tStatus'.expandtabs(18))
-    for container in containers:
-        creation_time = datetime.fromtimestamp(
-            container['Created']).strftime('%Y-%m-%d %H:%M')
-        print('{}\t{}\t{}'.format(
-            container['Names'][0],
-            creation_time,
-            container['Status']).expandtabs(18))
+
+    if containers:
+        containers_info = [['Name', 'Container Id', 'Created', 'Status', 'IP',
+                            'Port']]
+        for container in containers:
+            creation_time = datetime.fromtimestamp(
+                container['Created']).strftime('%Y-%m-%d %H:%M')
+            ip, port = utils.get_container_host_ip_and_port(
+                container, docker_client=d)
+            containers_info.append([
+                container['Names'][0][1:],
+                container['Id'][:12],
+                creation_time,
+                container['Status'],
+                ip,
+                port
+            ])
+
+        logging.info('\n' + tabulate(containers_info, headers='firstrow'))
 
 
 def start_container(args):
     """
-    Start docker container.
+    Start a docker container.
     """
-    d = utils.docker_client(args)
+    d = docker_client(args)
     client.start(args.containerName, docker_client=d)
 
 
 def stop_container(args):
     """
-    Stop docker container.
+    Stop a docker container.
     """
-    d = utils.docker_client(args)
+    d = docker_client(args)
     client.stop(args.containerName, docker_client=d)
 
 
 def remove_container(args):
     """
     Remove a docker container, does not force so stop the container
-     before removing.
+    before removing.
     """
-    d = utils.docker_client(args)
+    d = docker_client(args)
     client.remove(args.containerName, docker_client=d)
 
 
