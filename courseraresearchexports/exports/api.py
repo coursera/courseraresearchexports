@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Coursera's wrapper for data exports API.
+"""
+
 from courseraoauth2client import oauth2
 from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
     RESEARCH_EXPORTS_API, EVENTING_API

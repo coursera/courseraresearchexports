@@ -143,16 +143,14 @@ def parser(subparsers):
     parser_jobs = subparsers.add_parser(
         'jobs',
         help='Get status of current/completed research export job(s)',
-        description="""
-        Command line tools for requesting and reviewing the
-        status of Coursera research data exports. Please first authenticate
-        with the OAuth2 client before making requests (courseraoauth2client
-        config authorize --app manage-research-exports).""",
-        epilog="""
-        Please file bugs on github at:
-        https://github.com/coursera/courseraresearchexports/issues. If you
-        would like to contribute to this tool's development, check us out
-        at: https://github.com/coursera/courseraresarchexports""")
+        description='Command line tools for requesting and reviewing the '
+        'status of Coursera research data exports. Please first authenticate '
+        'with the OAuth2 client before making requests (courseraoauth2client '
+        'config authorize --app manage-research-exports).',
+        epilog='Please file bugs on github at: '
+        'https://github.com/coursera/courseraresearchexports/issues. If you '
+        'would like to contribute to this tool\'s development, check us out '
+        'at: https://github.com/coursera/courseraresarchexports')
 
     jobs_subparsers = parser_jobs.add_subparsers()
 
@@ -197,9 +195,9 @@ def parser(subparsers):
         '--interval',
         nargs=2,
         metavar=('START', 'END'),
-        help="""
-        Interval of {} exported data, inclusive. (i.e. 2016-08-01 2016-08-04).
-        """.format(exports.constants.EXPORT_TYPE_EVENTING))
+        help='Interval of {} exported data, inclusive. '
+        '(i.e. 2016-08-01 2016-08-04).'
+        .format(exports.constants.EXPORT_TYPE_EVENTING))
 
     return parser_jobs
 
@@ -209,16 +207,14 @@ def create_scope_subparser(parser):
         required=True)
     scope_subparser.add_argument(
         '--course_id',
-        help="""
-        Export rows corresponding to learners within a course according to the
-        unique id assigned by Coursera.""")
+        help='Export rows corresponding to learners within a course according '
+        'to the unique id assigned by Coursera.')
     scope_subparser.add_argument(
         '--course_slug',
-        help="""
-        Export rows corresponding to learners within a course according to the
-        unique name of your course defined as the part after /learn in the
-        course url. (e.g. machine-learning for
-        https://www.coursera.org/learn/machine-learning).""")
+        help='Export rows corresponding to learners within a course according '
+        'to the unique name of your course defined as the part after '
+        '/learn in the course url. (e.g. machine-learning for '
+        'https://www.coursera.org/learn/machine-learning).')
     scope_subparser.add_argument(
         '--partner_id',
         help='Export rows corresponding to learners within a partner.')
@@ -246,19 +242,17 @@ def create_request_parser(subparsers):
         '--anonymity_level',
         choices=exports.constants.ANONYMITY_LEVELS,
         default=exports.constants.ANONYMITY_LEVEL_ISOLATED,
-        help="""
-        {0} corresponds to data coordinator exports.
-        {1} has different user id columns in every domain."""
+        help='{0} corresponds to data coordinator exports. '
+        '{1} has different user id columns in every domain.'
         .format(exports.constants.ANONYMITY_LEVEL_COORDINATOR,
                 exports.constants.ANONYMITY_LEVEL_ISOLATED))
     request_args_parser.add_argument(
         '--statement_of_purpose',
         required=True,
-        help="""
-        Please let us know how you plan to use the
-        data, what types of research questions you're asking, who will
-        be working with the data primarily, and with whom you plan to
-        share it.""")
+        help='Please let us know how you plan to use the '
+        'data, what types of research questions you\'re asking, who will '
+        'be working with the data primarily, and with whom you plan to '
+        'share it.')
 
     # tables subcommand
     parser_tables = request_subparsers.add_parser(
@@ -294,14 +288,12 @@ def create_request_parser(subparsers):
         '--interval',
         nargs=2,
         metavar=('START', 'END'),
-        help="""
-        Interval of {} data to be exported(i.e. 2016-08-01 2016-08-04).
-        By default this will be the past day."""
+        help='Interval of {} data to be exported(i.e. 2016-08-01 2016-08-04). '
+        'By default this will be the past day.'
         .format(exports.constants.EXPORT_TYPE_EVENTING))
 
     parser_eventing.add_argument(
         '--ignore_existing',
         action='store_true',
-        help="""
-        If flag is set, we will recompute clickstream data for all dates
-        in the interval. Otherwise, previously computed days are skipped.""")
+        help='If flag is set, we will recompute clickstream data for all dates'
+        'in the interval. Otherwise, previously computed days are skipped.')

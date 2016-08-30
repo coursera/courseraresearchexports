@@ -91,12 +91,10 @@ def parser(subparsers):
         'containing the results of a research export. Please first '
         'authenticate with the OAuth2 client before making requests ('
         'courseraoauth2client config authorize --app manage-research-exports)',
-        epilog="""
-        Please file bugs on github at:
-        https://github.com/coursera/courseraresearchexports/issues. If you
-        would like to contribute to this tool's development, check us out
-        at: https://github.com/coursera/courseraresarchexports
-        """)
+        epilog='Please file bugs on github at: '
+        'https://github.com/coursera/courseraresearchexports/issues. If you '
+        'would like to contribute to this tool\'s development, check us out '
+        'at: https://github.com/coursera/courseraresarchexports')
 
     containers_subparsers = parser_containers.add_subparsers()
 

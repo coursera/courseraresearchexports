@@ -18,14 +18,14 @@
 Coursera's tools for managing docker containers configured with a
 postgres database.
 """
-import logging
-import os
-import shutil
-import time
 
 from courseraresearchexports import exports
 from courseraresearchexports.containers import utils
 from courseraresearchexports.models.ContainerInfo import ContainerInfo
+import logging
+import os
+import shutil
+import time
 
 COURSERA_DOCKER_LABEL = 'courseraResearchExport'
 COURSERA_LOCAL_FOLDER = os.path.expanduser('~/.coursera/exports/')

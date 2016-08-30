@@ -297,26 +297,27 @@ class ExportRequestWithMetadata(ExportRequest):
         :return output_filename:
         """
         if self.export_type == EXPORT_TYPE_EVENTING:
-            logging.error("""
-                Generate download links to download eventing export requests.
-                Please refer to the Coursera Export Guide for details
-                https://coursera.gitbooks.io/data-exports/content/introduction
-                /programmatic_access.html""")
+            logging.error(
+                'Generate download links to access eventing export requests'
+                'using `courseraresearchexports jobs eventing_download_links`.'
+                ' Please refer to the Coursera Export Guide for details'
+                'https://coursera.gitbooks.io/data-exports/content/'
+                'introduction/programmatic_access.html')
             raise ValueError(
                 'Require export_type = {}'.format(EXPORT_TYPE_SCHEMAS))
         elif not self.download_link:
             if self.status in ['PENDING', 'IN_PROGRESS']:
-                logging.error("""
-                    Export request {} is currently {} and is not ready for
-                    download. Please wait until the request is completed.
-                    """.format(self.id, self.status))
+                logging.error(
+                    'Export request {} is currently {} and is not ready for'
+                    'download. Please wait until the request is completed.'
+                    .format(self.id, self.status))
                 raise ValueError(
                     'Export request is not yet ready for download')
             elif self.status == 'TERMINATED':
-                logging.error("""
-                    Export request has been TERMINATED. Please contact
-                    data-support@coursera.org if we have not resolved this
-                    within 24 hours.""")
+                logging.error(
+                    'Export request has been TERMINATED. Please contact '
+                    'data-support@coursera.org if we have not resolved this '
+                    'within 24 hours.')
                 raise ValueError('Export request has been TERMINATED')
             else:
                 logging.error('Download link was not found.')
