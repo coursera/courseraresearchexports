@@ -14,12 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.containers import client, utils
+from courseraresearchexports.containers import client
 from courseraresearchexports.utils import docker_client
-from datetime import datetime
 from tabulate import tabulate
 import logging
-import sys
 
 
 def create_container(args):
@@ -28,16 +26,11 @@ def create_container(args):
     Export job will be downloaded and loaded into dockerized database.
     Automatically starts container.
     """
-    try:
-        d = docker_client(args.docker_url, args.timeout)
-        container = client.create_from_export_request_id(
-            export_request_id=args.export_request_id, docker_client=d)
-        logging.info('Created container {id:12}'.format(id=container['Id']))
+    d = docker_client(args.docker_url, args.timeout)
+    container_id = client.create_from_export_request_id(
+        args.export_request_id, docker_client=d)
 
-    except Exception as err:
-        logging.error('Error creating container with job {id:12}:\n{err}'
-                      .format(id=args.export_request_id, err=err))
-        raise
+    logging.info('Container {:.12} ready.'.format(container_id))
 
 
 def list_containers(args):
@@ -45,26 +38,24 @@ def list_containers(args):
     List docker containers created with Coursera data exports.
     """
     d = docker_client(args.docker_url, args.timeout)
-    containers = client.list_all(docker_client=d)
+    containers_info = client.list_all(docker_client=d)
 
-    if containers:
-        containers_info = [['Name', 'Container Id', 'Created', 'Status', 'IP',
-                            'Port']]
-        for container in containers:
-            creation_time = datetime.fromtimestamp(
-                container['Created']).strftime('%Y-%m-%d %H:%M')
-            ip, port = utils.get_container_host_ip_and_port(
-                container, docker_client=d)
-            containers_info.append([
-                container['Names'][0][1:],
-                container['Id'][:12],
-                creation_time,
-                container['Status'],
-                ip,
-                port
+    if containers_info:
+        containers_info_table = [
+            ['Name', 'Container Id', 'Created', 'Status', 'Host IP', 'Port']]
+
+        for container_info in containers_info:
+            containers_info_table.append([
+                container_info.name,
+                container_info.short_id,
+                container_info.creation_time.strftime('%c'),
+                container_info.status,
+                container_info.host_ip,
+                container_info.host_port
             ])
 
-        logging.info('\n' + tabulate(containers_info, headers='firstrow'))
+        logging.info('\n' + tabulate(containers_info_table,
+                                     headers='firstrow'))
 
 
 def start_container(args):
@@ -72,7 +63,7 @@ def start_container(args):
     Start a docker container.
     """
     d = docker_client(args.docker_url, args.timeout)
-    client.start(args.container_name, docker_client=d)
+    client.start(args.container_name_or_id, docker_client=d)
 
 
 def stop_container(args):
@@ -80,16 +71,16 @@ def stop_container(args):
     Stop a docker container.
     """
     d = docker_client(args.docker_url, args.timeout)
-    client.stop(args.container_name, docker_client=d)
+    client.stop(args.container_name_or_id, docker_client=d)
 
 
 def remove_container(args):
     """
-    Remove a docker container, does not force so stop the container
+    Remove a docker container, stop the container
     before removing.
     """
     d = docker_client(args.docker_url, args.timeout)
-    client.remove(args.container_name, docker_client=d)
+    client.remove(args.container_name_or_id, docker_client=d)
 
 
 def parser(subparsers):
@@ -133,24 +124,24 @@ def parser(subparsers):
         'stop',
         help=stop_container.__doc__)
     parser_stop.add_argument(
-        'container_name',
-        help='Name of container to be stopped')
+        'container_name_or_id',
+        help='Name or id of container to stop.')
     parser_stop.set_defaults(func=stop_container)
 
     parser_start = containers_subparsers.add_parser(
         'start',
         help=start_container.__doc__)
     parser_start.add_argument(
-        'container_name',
-        help='Name of containers to be started')
+        'container_name_or_id',
+        help='Name or id of container to start.')
     parser_start.set_defaults(func=start_container)
 
     parser_remove = containers_subparsers.add_parser(
         'remove',
         help=remove_container.__doc__)
     parser_remove.add_argument(
-        'container_name',
-        help='Name of containers to be removed')
+        'container_name_or_id',
+        help='Name or id of container to remove.')
     parser_remove.set_defaults(func=remove_container)
 
     return parser_containers

@@ -38,13 +38,24 @@ def create_tar_archive(str, name='init-user-db.sh'):
     return archive_tarstream
 
 
-def get_container_host_ip_and_port(container, docker_client):
+def get_next_available_port(containers_info):
     """
-    Find bound host port to postgres port
-    :param container:
+    Find next available port to map postgres port to host.
+    :param containers_info:
+    :return port:
+    """
+    ports = [container_info.port for container_info in containers_info]
+
+    return max(ports) + 1 if ports else 5433
+
+
+def is_container_running(container_name_or_id, docker_client):
+    """
+    Check whether container is still running.
+    :param container_name_or_id:
     :param docker_client:
-    :return ip, port:
+    :return isRunning: Boolean
     """
-    container_info = docker_client.inspect_container(container)
-    port_bindings = container_info['NetworkSettings']['Ports']['5432/tcp'][0]
-    return port_bindings['HostIp'], int(port_bindings['HostPort'])
+    container_details = docker_client.inspect_container(container_name_or_id)
+
+    return container_details['State']['Running']

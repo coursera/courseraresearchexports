@@ -15,8 +15,9 @@
 # limitations under the License.
 
 from courseraresearchexports import exports
-from courseraresearchexports.exports.models import ExportRequest, \
+from courseraresearchexports.models.EventingDownloadLinksRequest import \
     EventingDownloadLinksRequest
+from courseraresearchexports.models.ExportRequest import ExportRequest
 from requests.exceptions import HTTPError
 from tabulate import tabulate
 import json

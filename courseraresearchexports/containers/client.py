@@ -18,14 +18,14 @@
 Coursera's tools for managing docker containers configured with a
 postgres database.
 """
-
-from courseraresearchexports.containers import utils
-from courseraresearchexports import exports
 import logging
-import shutil
 import os
+import shutil
 import time
 
+from courseraresearchexports import exports
+from courseraresearchexports.containers import utils
+from courseraresearchexports.models.ContainerInfo import ContainerInfo
 
 COURSERA_DOCKER_LABEL = 'courseraResearchExport'
 COURSERA_LOCAL_FOLDER = os.path.expanduser('~/.coursera/exports/')
@@ -34,53 +34,88 @@ POSTGRES_INIT_MSG = 'PostgreSQL init process complete; ready for start up.'
 POSTGRES_READY_MSG = 'database system is ready to accept connections'
 
 
-def get_next_available_port(docker_client):
-    """
-    Find next available port to map postgres port to host
-    :param docker_client:
-    :return port:
-    """
-    containers = list_all(docker_client)
-    ports = [utils.get_container_host_ip_and_port(container, docker_client)[1]
-             for container in containers]
-
-    return max(ports) + 1 if ports else 5433
-
-
 def list_all(docker_client):
     """
     Return all containers that have Coursera label
     :param docker_client:
+    :return containers_info: [ContainerInfo]
     """
-    return docker_client.containers(
-        all=True, filters={'label': COURSERA_DOCKER_LABEL})
+    return [ContainerInfo.from_container_dict(container_dict)
+            for container_dict in docker_client.containers(
+            all=True, filters={'label': COURSERA_DOCKER_LABEL})]
 
 
-def start(container, docker_client):
+def start(container_name_or_id, docker_client):
     """
     Start a docker container containing a research export database. Waits until
     """
-    logging.info('Starting containers...')
-    docker_client.start(container)
-    # poll logs to see if database is ready to accept connections
-    while POSTGRES_READY_MSG not in docker_client.logs(container, tail=4):
-        logging.debug('Polling container for database connection...')
-        time.sleep(1)
-    logging.info('Container ready.')
+    try:
+        logging.debug('Starting container {}...'.format(container_name_or_id))
+        docker_client.start(container_name_or_id)
+
+        # poll logs to see if database is ready to accept connections
+        while POSTGRES_READY_MSG not in docker_client.logs(
+                container_name_or_id, tail=4):
+
+            logging.debug('Polling container for database connection...')
+            if not utils.is_container_running(
+                    container_name_or_id, docker_client):
+                raise RuntimeError('Container failed to start.')
+
+            time.sleep(10)
+
+        logging.info('Started container {}.'.format(container_name_or_id))
+
+    except:
+        logging.error(
+            """Container failed to start, check log for errors:\n{}"""
+            .format(docker_client.logs(container_name_or_id, tail=20)))
+        raise
 
 
-def stop(container, docker_client):
+def stop(container_name_or_id, docker_client):
     """
     Stops a docker container
     """
-    docker_client.stop(container)
+    docker_client.stop(container_name_or_id)
 
 
-def remove(container, docker_client):
+def remove(container_name_or_id, docker_client):
     """
     Remove a stopped container
     """
-    docker_client.remove_container(container)
+    docker_client.remove_container(container_name_or_id)
+
+
+def initialize(container_name_or_id, docker_client):
+    """
+    Initialize a docker container. Polls database for completion of
+    entrypoint tasks.
+    """
+    try:
+        logging.info('Initializing container {}...'.format(
+            container_name_or_id))
+
+        docker_client.start(container_name_or_id)
+        while POSTGRES_INIT_MSG not in docker_client.logs(
+                container_name_or_id, tail=20):
+
+            logging.debug('Polling data for entrypoint initialization...')
+            if not utils.is_container_running(container_name_or_id,
+                                              docker_client):
+                raise RuntimeError('Container initialization failed.')
+
+            time.sleep(10)
+
+        logging.info('Initialized container {}.'.format(container_name_or_id))
+
+    except:
+        logging.error(
+            """Container initialization failed, check log for errors:\n{}"""
+            .format(docker_client.logs(container_name_or_id, tail=20)))
+        logging.error(
+            """If error persists, consider restarting your docker engine.""")
+        raise
 
 
 def create_from_folder(
@@ -94,66 +129,64 @@ def create_from_folder(
     :param docker_client:
     :param container_name:
     :param database_name:
-    :return container:
+    :return container_id:
     """
-    try:
-        if not docker_client.images(name=POSTGRES_DOCKER_IMAGE):
-            logging.warn('Downloading image: {}'.format(POSTGRES_DOCKER_IMAGE))
-            docker_client.import_image(image=POSTGRES_DOCKER_IMAGE)
+    if not docker_client.images(name=POSTGRES_DOCKER_IMAGE):
+        logging.warn('Downloading image: {}'.format(POSTGRES_DOCKER_IMAGE))
+        docker_client.import_image(image=POSTGRES_DOCKER_IMAGE)
 
-        for existingContainer in docker_client.containers(
-                all=True, filters={'name': container_name}):
-            logging.info('Removing existing containers: {}'.format(
-                container_name))
-            docker_client.remove_container(existingContainer, force=True)
+    for existingContainer in docker_client.containers(
+            all=True, filters={'name': container_name}):
+        logging.info('Removing existing container with name: {}'.format(
+            container_name))
+        docker_client.stop(existingContainer)
+        docker_client.remove_container(existingContainer)
 
-        logging.debug('Creating containers from {folder}'.format(
-            folder=export_data_folder))
-        container = docker_client.create_container(
-            image=POSTGRES_DOCKER_IMAGE,
-            name=container_name,
-            labels=[COURSERA_DOCKER_LABEL],
-            volumes=['/mnt/exportData'],
-            host_config=docker_client.create_host_config(
-                binds=['{}:/mnt/exportData:ro'.format(export_data_folder)],
-                port_bindings={
-                    5432: get_next_available_port(docker_client)
-                })
-        )
+    logging.debug('Creating containers from {folder}'.format(
+        folder=export_data_folder))
+    container = docker_client.create_container(
+        image=POSTGRES_DOCKER_IMAGE,
+        name=container_name,
+        labels=[COURSERA_DOCKER_LABEL],
+        volumes=['/mnt/exportData'],
+        host_config=docker_client.create_host_config(
+            binds=['{}:/mnt/exportData:ro'.format(export_data_folder)],
+            port_bindings={
+                5432: utils.get_next_available_port(list_all(
+                    docker_client))
+            }))
 
-        # copy containers initialization script to entrypoint
-        database_setup_script = '''
-            createdb -U {user} {db}
-            cd /mnt/exportData
-            psql -e -U {user} -d {db} -f setup.sql
-            psql -e -U {user} -d {db} -f load.sql
-        '''.format(user='postgres', db=database_name)
+    container_id = container['Id']
 
-        docker_client.put_archive(
-            container,  # using a named argument here causes NullResource error
-            path='/docker-entrypoint-initdb.d/',
-            data=utils.create_tar_archive(
-                database_setup_script, name='init-user-db.sh'))
+    # copy containers initialization script to entrypoint
+    database_setup_script = """
+        createdb -U {user} {db}
+        cd /mnt/exportData
+        psql -e -U {user} -d {db} -f setup.sql
+        psql -e -U {user} -d {db} -f load.sql
+    """.format(user='postgres', db=database_name)
 
-        logging.info('Created containers with id: {}'.format(container['Id']))
-        start(container, docker_client)
+    docker_client.put_archive(
+        container_id,  # using a named argument causes NullResource error
+        path='/docker-entrypoint-initdb.d/',
+        data=utils.create_tar_archive(
+            database_setup_script, name='init-user-db.sh'))
 
-        # hack to see check if container initialization is done
-        logging.info('Initializing container...')
-        while POSTGRES_INIT_MSG not in docker_client.logs(container, tail=20):
-            logging.debug('Polling data for entrypoint initialization...')
-            time.sleep(10)
-        logging.info('Initialization done.')
+    logging.info('Created container with id: {}'.format(container_id))
 
-        return container
+    initialize(container_id, docker_client)
 
-    except:
-        logging.error('Error setting up container')
-        raise
+    return container_id
 
 
 def create_from_export_request_id(export_request_id, docker_client):
-    """Creates a containers containers for a given export_job_id"""
+    """
+    Create a docker container containing the export data from a given
+    export request
+    :param export_request_id:
+    :param docker_client:
+    :return container_id:
+    """
     export_request = exports.api.get(export_request_id)
 
     logging.info('Downloading export {}'.format(export_request_id))
@@ -163,11 +196,11 @@ def create_from_export_request_id(export_request_id, docker_client):
             dest=os.path.join(COURSERA_LOCAL_FOLDER, export_request_id),
             delete_archive=True)
 
-    container = create_from_folder(
+    container_id = create_from_folder(
         export_data_folder=export_data_folder,
         container_name=export_request_id,
         docker_client=docker_client)
 
     shutil.rmtree(export_data_folder)
 
-    return container
+    return container_id

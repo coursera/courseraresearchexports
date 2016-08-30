@@ -17,8 +17,8 @@
 from courseraoauth2client import oauth2
 from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
     RESEARCH_EXPORTS_API, EVENTING_API
-from courseraresearchexports.exports.models import ExportRequest, \
-    ExportRequestWithMetadata, EventingDownloadLinksRequest
+from courseraresearchexports.models.ExportRequest import \
+    ExportRequestWithMetadata
 import requests
 
 
@@ -75,6 +75,7 @@ def post(export_request):
 def get_eventing_download_links(eventing_links_request):
     """
     Return the download links for eventing exports in a given scope.
+    :param eventing_links_request: EventingDownloadLinksRequest
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
     response = requests.post(
@@ -83,5 +84,3 @@ def get_eventing_download_links(eventing_links_request):
         auth=auth)
 
     return response.json()
-
-
