@@ -142,7 +142,7 @@ def create_from_folder(
         logging.info('Initializing container...')
         while POSTGRES_INIT_MSG not in docker_client.logs(container, tail=20):
             logging.debug('Polling data for entrypoint initialization...')
-            time.sleep(1)
+            time.sleep(10)
         logging.info('Initialization done.')
 
         return container
@@ -152,21 +152,20 @@ def create_from_folder(
         raise
 
 
-def create_from_export_job_id(export_job_id, docker_client):
+def create_from_export_request_id(export_request_id, docker_client):
     """Creates a containers containers for a given export_job_id"""
-    export_job = exports.api.get(export_job_id)
+    export_request = exports.api.get(export_request_id)
 
-    logging.info('Downloading export {}'.format(export_job_id))
-    export_archive = exports.utils.download_export(
-        export_job=export_job, dest=COURSERA_LOCAL_FOLDER)
+    logging.info('Downloading export {}'.format(export_request_id))
+    export_archive = export_request.download(dest=COURSERA_LOCAL_FOLDER)
     export_data_folder = exports.utils.extract_export_archive(
             export_archive,
-            dest=os.path.join(COURSERA_LOCAL_FOLDER, export_job_id),
+            dest=os.path.join(COURSERA_LOCAL_FOLDER, export_request_id),
             delete_archive=True)
 
     container = create_from_folder(
         export_data_folder=export_data_folder,
-        container_name=export_job_id,
+        container_name=export_request_id,
         docker_client=docker_client)
 
     shutil.rmtree(export_data_folder)

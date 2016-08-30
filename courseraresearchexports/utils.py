@@ -24,13 +24,11 @@ import argparse
 import requests
 import logging
 import sys
-from sys import platform as _platform
-from docker.utils import kwargs_from_env
 from docker import Client
 
 
 def add_logging_parser(main_parser):
-    "Build an argparse argument parser to parse the command line."
+    """Build an argparse argument parser to parse the command line."""
 
     main_parser.set_defaults(setup_logging=set_logging_level)
 
@@ -57,7 +55,7 @@ def add_logging_parser(main_parser):
 
 
 def set_logging_level(args):
-    "Computes and sets the logging level from the parsed arguments."
+    """Computes and sets the logging level from the parsed arguments."""
     root_logger = logging.getLogger()
     level = logging.INFO
     logging.getLogger('requests.packages.urllib3').setLevel(logging.WARNING)
@@ -68,8 +66,8 @@ def set_logging_level(args):
         elif args.verbose > 0:
             level = logging.DEBUG
         else:
-            logging.critical("verbose is an unexpected value. (%s) exiting.",
-                             args.verbose)
+            logging.critical("verbose is an unexpected value. {} exiting."
+                             .format(args.verbose))
             sys.exit(2)
     elif "quiet" in args and args.quiet is not None:
         if args.quiet > 1:
@@ -77,8 +75,8 @@ def set_logging_level(args):
         elif args.quiet > 0:
             level = logging.WARNING
         else:
-            logging.critical("quiet is an unexpected value. (%s) exiting.",
-                             args.quiet)
+            logging.critical("quiet is an unexpected value. {} exiting."
+                             .format(args.quiet))
     if level is not None:
         root_logger.setLevel(level)
 
@@ -88,18 +86,13 @@ def set_logging_level(args):
 
 
 def docker_client_arg_parser():
-    "Builds an argparse parser for docker client connection flags."
+    """Builds an argparse parser for docker client connection flags."""
     # The following subcommands operate on a single containers. We centralize
     # all these options here.
     docker_parser = argparse.ArgumentParser(add_help=False)
     docker_parser.add_argument(
         '--docker-url',
         help='The url of the docker demon.')
-    docker_parser.add_argument(
-        '--strict-docker-tls',
-        action='store_true',
-        help='Do not disable strict tls checks for the docker client (Mac '
-             'OS only).')
     docker_parser.add_argument(
         '--timeout',
         type=int,
@@ -108,39 +101,20 @@ def docker_client_arg_parser():
     return docker_parser
 
 
-def docker_client(args):
+def docker_client(docker_url=None, timeout=60):
     """
     Attempts to create a docker client.
 
-     - args: The arguments parsed on the command line.
+     - docker_url: base url for docker
+     - timeout: timeout for docker client
      - returns: a docker-py client
     """
-    if _platform == 'linux' or _platform == 'linux2':
-        # linux
-        if "docker_url" in args:
-            return Client(
-                base_url=args.docker_url,
-                timeout=args.timeout,
-                version='auto')
-        else:
-            # TODO: test to see if this does the right thing by default.
-            return Client(
-                version='auto',
-                timeout=args.timeout,
-                **kwargs_from_env())
-    elif _platform == 'darwin':
-        # OS X - Assume boot2docker, and pull from that environment.
-        # TODO: decide whether setting up a docker-machine is required...
-        kwargs = kwargs_from_env()
-        # if len(kwargs) == 0:
-        #     logging.error('Could not correctly pull in docker environment. '
-        #     'Try running: eval "$(docker-machine env default)"')
-        #     sys.exit(2)
-        # if not args.strict_docker_tls:
-        #     kwargs['tls'].assert_hostname = False
-
-        return Client(version='auto', timeout=args.timeout, **kwargs)
-    elif _platform == 'win32' or _platform == 'cygwin':
-        # Windows.
-        logging.fatal("Sorry, windows is not currently supported!")
-        sys.exit(2)
+    if docker_url:
+        return Client(
+            base_url=docker_url,
+            timeout=timeout,
+            version='auto')
+    else:
+        return Client(
+            timeout=timeout,
+            version='auto')

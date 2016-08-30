@@ -1,7 +1,8 @@
 __all__ = [
     "api",
     "utils",
-    "constants"
+    "constants",
+    "models"
 ]
 
 from . import *  # noqa

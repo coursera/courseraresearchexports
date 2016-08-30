@@ -38,28 +38,35 @@ for a complete list of features, flags, and documentation.
 jobs
 ^^^^
 
-create
-~~~~~~
+request
+~~~~~~~
 
 Create an data export job request and return the export job id.  There are two
 general workflows for creating data export requests.  To create a data export
-requests for all available schemas for a course::
+requests for all available tables for a course::
 
-    courseraresearchexports jobs create schemas --courseId $COURSE_ID --statementOfPurpose "testing data export"
+    courseraresearchexports jobs request tables --courseSlug $COURSE_SLUG --statementOfPurpose "testing data export"
+
+Replace `$COURSE_SLUG` with your course slug (The course slug is the part after
+`/learn` in the url. For `https://www.coursera.org/learn/machine-learning`,
+the slug is `machine-learning`).
 
 If a more limited set of data is required, you can specify which schemas are
 included with the export.  (e.g. for the demographics tables)::
 
-    courseraresearchexports jobs create schemas --courseId $COURSE_ID --schemas demographics --statementOfPurpose "testing data export"
+    courseraresearchexports jobs request tables --courseSlug $COURSE_SLUG --schemaNames demographics --statementOfPurpose "testing data export"
+
+For more information on the available tables/schemas, please refer to the
+`Coursera Data Exports Guide <https://coursera.gitbooks.io/data-exports/content/introduction/programmatic_access.html>`_.
 
 If you are a data coordinator, you can request that user ids are linked between
 domains of the data export::
 
-    courseraresearchexports jobs create schemas --courseId $COURSE_ID --statementOfPurpose "testing data export" --anonymityLevel HASHED_IDS_NO_PII
+    courseraresearchexports jobs request tables --courseSlug $COURSE_SLUG --statementOfPurpose "testing data export" --anonymityLevel HASHED_IDS_NO_PII
 
 Data coordinators can also request clickstream (eventing) exports::
 
-    courseraresearchexports jobs create eventing --courseId $COURSE_ID --interval 2016-09-01 2016-09-02 --anonymityLevel HASHED_IDS_NO_PII --statementOfPurpose "testing data export"
+    courseraresearchexports jobs request eventing --courseSlug $COURSE_SLUG --interval 2016-09-01 2016-09-02 --anonymityLevel HASHED_IDS_NO_PII --statementOfPurpose "testing data export"
 
 getAll
 ~~~~~~

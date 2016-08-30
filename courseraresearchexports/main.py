@@ -40,7 +40,6 @@ def build_parser():
         would like to contribute to this tool's development, check us out at:
         https://github.com/coursera/courseraresarchexports""",
         parents=[utils.docker_client_arg_parser()])
-    parser.add_argument('-c', '--config', help='the configuration file to use')
 
     utils.add_logging_parser(parser)
 

@@ -25,7 +25,7 @@ import logging
 
 
 def command_version(args):
-    "Implements the version subcommand"
+    """Implements the version subcommand"""
 
     # See http://stackoverflow.com/questions/17583443
     from pkg_resources import get_distribution, DistributionNotFound
@@ -50,14 +50,12 @@ def command_version(args):
     if args.quiet and args.quiet > 0:
         logging.info(__version__)
     else:
-        logging.info("Your %(prog)s's version is:\n\t%(version)s", {
-            "prog": sys.argv[0],
-            "version": __version__
-        })
+        logging.info("Your {prog}'s version is:\n\t{version}"
+                     .format(prog=sys.argv[0], version=__version__))
 
 
 def parser(subparsers):
-    "Build an argparse argument parser to parse the command line."
+    """Build an argparse argument parser to parse the command line."""
 
     # create the parser for the version subcommand.
     parser_version = subparsers.add_parser(

@@ -16,7 +16,9 @@
 
 from courseraoauth2client import oauth2
 from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
-    RESEARCH_EXPORTS_API
+    RESEARCH_EXPORTS_API, EVENTING_API
+from courseraresearchexports.exports.models import ExportRequest, \
+    ExportRequestWithMetadata, EventingDownloadLinksRequest
 import requests
 
 
@@ -25,23 +27,22 @@ def get(export_job_id):
     Use Coursera's Research Export Resource to get a data export job given an
     export job id.
     :param export_job_id:
-    :return export_job:
+    :return export_request: ExportRequestWithMetaData
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
     response = requests.get(
         url=requests.compat.urljoin(RESEARCH_EXPORTS_API, export_job_id),
         auth=auth)
     response.raise_for_status()
-    export_job = response.json()['elements'][0]
 
-    return export_job
+    return ExportRequestWithMetadata.from_json(response.json()['elements'][0])
 
 
 def get_all():
     """
     Uses Coursera's Research Exports Resource to get all data export job
     requests created by a user. Limited to the 100 most recent requests.
-    :return export_jobs:
+    :return export_requests: [ExportRequestWithMetaData]
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
     response = requests.get(
@@ -49,23 +50,38 @@ def get_all():
         auth=auth,
         params={'q': 'my'})
     response.raise_for_status()
-    export_jobs = response.json()['elements']
+    export_requests = [ExportRequestWithMetadata.from_json(export_request)
+                       for export_request in response.json()['elements']]
 
-    return export_jobs
+    return export_requests
 
 
-def create(export_job_json):
+def post(export_request):
     """
     Creates a data export job using a formatted json request.
-    :param export_job_json:
-    :return export_job_id:
+    :param export_request:
+    :return export_request_with_metadata: ExportRequestWithMetadata
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
     response = requests.post(
         url=RESEARCH_EXPORTS_API,
-        json=export_job_json,
+        json=export_request.to_json(),
         auth=auth)
     response.raise_for_status()
-    export_job_id = response.json()['elements'][0]['id']
 
-    return export_job_id
+    return ExportRequestWithMetadata.from_json(response.json()['elements'][0])
+
+
+def get_eventing_download_links(eventing_links_request):
+    """
+    Return the download links for eventing exports in a given scope.
+    """
+    auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
+    response = requests.post(
+        url=EVENTING_API,
+        params=eventing_links_request.to_url_params(),
+        auth=auth)
+
+    return response.json()
+
+
