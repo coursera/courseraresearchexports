@@ -77,8 +77,3 @@ def test_download(api_get):
     jobs.download(args)
 
     export_request_mock.download.assert_called_with(args.dest)
-
-
-
-
-

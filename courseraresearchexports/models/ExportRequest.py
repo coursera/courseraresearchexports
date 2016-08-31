@@ -161,7 +161,6 @@ class ExportRequest(object):
         else:
             return None
 
-
     def __eq__(self, other):
         """
         Override for internal equality checks as suggested at:
@@ -214,12 +213,14 @@ class ExportRequestMetadata(object):
             if json_metadata.get('createdBy'):
                 kwargs['created_by'] = json_metadata['createdBy']
             if json_metadata.get('createdAt'):
-                kwargs['created_at'] = timestamp_to_dt(json_metadata['createdAt'])
+                kwargs['created_at'] = timestamp_to_dt(
+                    json_metadata['createdAt'])
             if json_metadata.get('completedAt'):
                 kwargs['completed_at'] = timestamp_to_dt(
                     json_metadata['completedAt'])
             if json_metadata.get('startedAt'):
-                kwargs['started_at'] = timestamp_to_dt(json_metadata['startedAt'])
+                kwargs['started_at'] = timestamp_to_dt(
+                    json_metadata['startedAt'])
             if json_metadata.get('snapshotAt'):
                 kwargs['snapshot_at'] = timestamp_to_dt(
                     json_metadata['snapshotAt'])
