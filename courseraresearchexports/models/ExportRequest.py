@@ -26,7 +26,7 @@ import requests
 import time
 
 
-class ExportRequest:
+class ExportRequest(object):
     """
     Represents a export request for Coursera's research data export
     service and provides methods for serialization.
@@ -89,8 +89,8 @@ class ExportRequest:
 
         return json_request
 
-    @staticmethod
-    def from_args(**kwargs):
+    @classmethod
+    def from_args(cls, **kwargs):
         """
         Create a ExportResource object using the parameters required. Performs
         course_id/partner_id inference if possible.
@@ -104,10 +104,10 @@ class ExportRequest:
             kwargs['partner_id'] = utils.lookup_partner_id_by_short_name(
                 kwargs['partner_short_name'])
 
-        return ExportRequest(**kwargs)
+        return cls(**kwargs)
 
-    @staticmethod
-    def from_json(json_request):
+    @classmethod
+    def from_json(cls, json_request):
         """
         Deserialize ExportRequest from json object.
         :param json_request:
@@ -125,7 +125,7 @@ class ExportRequest:
         elif request_scope_context == 'groupContext':
             kwargs['group_id'] = request_scope['definition']['groupId']
 
-        return ExportRequest(
+        return cls(
             export_type=json_request.get('exportType'),
             anonymity_level=json_request.get('anonymityLevel'),
             statement_of_purpose=json_request.get('statementOfPurpose'),
@@ -153,13 +153,26 @@ class ExportRequest:
             return 'events'
         elif self.export_type == EXPORT_TYPE_GRADEBOOK:
             return 'gradebook'
-        elif set(self.schema_names) == set(SCHEMA_NAMES):
-            return 'all'
+        elif self.schema_names:
+            if set(self.schema_names) == set(SCHEMA_NAMES):
+                return 'all'
+            else:
+                return ','.join(self.schema_names)
         else:
-            return ','.join(self.schema_names)
+            return None
 
 
-class ExportRequestMetadata:
+    def __eq__(self, other):
+        """
+        Override for internal equality checks as suggested at:
+        http://stackoverflow.com/a/390640
+        """
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
+
+class ExportRequestMetadata(object):
     """Metadata about the internal timings of the export request"""
 
     def __init__(self, created_by=None, created_at=None, started_at=None,
@@ -189,27 +202,31 @@ class ExportRequestMetadata:
 
         return json_metadata
 
-    @staticmethod
-    def from_json(json_metadata):
+    @classmethod
+    def from_json(cls, json_metadata):
         """
         Deserialize ExportRequestMetaData from json object.
         :param json_metadata:
         :return export_request_metadata: ExportRequestMetadata
         """
-        kwargs = {}
-        if json_metadata.get('createdBy'):
-            kwargs['created_by'] = json_metadata['createdBy']
-        if json_metadata.get('createdAt'):
-            kwargs['created_at'] = timestamp_to_dt(json_metadata['createdAt'])
-        if json_metadata.get('completedAt'):
-            kwargs['completed_at'] = timestamp_to_dt(
-                json_metadata['completedAt'])
-        if json_metadata.get('startedAt'):
-            kwargs['started_at'] = timestamp_to_dt(json_metadata['startedAt'])
-        if json_metadata.get('snapshotAt'):
-            kwargs['snapshot_at'] = timestamp_to_dt(
-                json_metadata['snapshotAt'])
-        return ExportRequestMetadata(**kwargs)
+        if json_metadata:
+            kwargs = {}
+            if json_metadata.get('createdBy'):
+                kwargs['created_by'] = json_metadata['createdBy']
+            if json_metadata.get('createdAt'):
+                kwargs['created_at'] = timestamp_to_dt(json_metadata['createdAt'])
+            if json_metadata.get('completedAt'):
+                kwargs['completed_at'] = timestamp_to_dt(
+                    json_metadata['completedAt'])
+            if json_metadata.get('startedAt'):
+                kwargs['started_at'] = timestamp_to_dt(json_metadata['startedAt'])
+            if json_metadata.get('snapshotAt'):
+                kwargs['snapshot_at'] = timestamp_to_dt(
+                    json_metadata['snapshotAt'])
+            return cls(**kwargs)
+
+        else:
+            return None
 
 
 class ExportRequestWithMetadata(ExportRequest):
@@ -223,8 +240,8 @@ class ExportRequestWithMetadata(ExportRequest):
                  statement_of_purpose=None, schema_names=None,
                  interval=None, ignore_existing=None, id=None,
                  status=None, download_link=None, metadata=None, **kwargs):
-        ExportRequest.__init__(
-            self, course_id=course_id, partner_id=partner_id,
+        super(ExportRequestWithMetadata, self).__init__(
+            course_id=course_id, partner_id=partner_id,
             group_id=group_id, export_type=export_type,
             anonymity_level=anonymity_level,
             statement_of_purpose=statement_of_purpose,
@@ -253,42 +270,41 @@ class ExportRequestWithMetadata(ExportRequest):
 
         return json_request
 
-    @staticmethod
-    def from_json(json_request):
+    @classmethod
+    def from_parent(cls, parent, id=None, status=None, download_link=None,
+                    metadata=None, **kwargs):
+        return cls(
+            course_id=parent.course_id, partner_id=parent.partner_id,
+            group_id=parent.group_id, export_type=parent.export_type,
+            anonymity_level=parent.anonymity_level,
+            statement_of_purpose=parent.statement_of_purpose,
+            schema_names=parent.schema_names, interval=parent.interval,
+            ignore_existing=parent.ignore_existing, id=id, status=status,
+            download_link=download_link, metadata=metadata)
+
+    @classmethod
+    def from_json(cls, json_request):
         """
         Deserialize ExportRequest from json object.
         :param json_request:
         :return export_request: ExportRequestWithMetadata
         """
-        kwargs = {}
-        request_scope = json_request['scope']
-        request_scope_context = request_scope['typeName']
+        parent = super(cls, cls).from_json(json_request)
 
-        if request_scope_context == 'courseContext':
-            kwargs['course_id'] = request_scope['definition']['courseId']
-        elif request_scope_context == 'partnerContext':
-            kwargs['partner_id'] = \
-                request_scope['definition']['partnerId']['maestroId']
-        elif request_scope_context == 'groupContext':
-            kwargs['group_id'] = request_scope['definition']['groupId']
-
-        return ExportRequestWithMetadata(
-            export_type=json_request.get('exportType'),
-            anonymity_level=json_request.get('anonymityLevel'),
-            statement_of_purpose=json_request.get('statementOfPurpose'),
-            schema_names=json_request.get('schemaNames'),
-            interval=json_request.get('interval'),
-            ignore_existing=json_request.get('ignoreExisting'),
+        return cls.from_parent(
+            parent=parent,
             id=json_request.get('id'),
             status=json_request.get('status'),
             download_link=json_request.get('downloadLink'),
             metadata=ExportRequestMetadata.from_json(
-                json_request.get('metadata')),
-            **kwargs)
+                json_request.get('metadata')))
 
     @property
     def created_at(self):
-        return self.metadata.created_at
+        if self.metadata and self.metadata.created_at:
+            return self.metadata.created_at
+        else:
+            return datetime.fromtimestamp(0)
 
     def download(self, dest):
         """

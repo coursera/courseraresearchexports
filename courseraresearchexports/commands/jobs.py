@@ -135,8 +135,9 @@ def get_eventing_links(args):
     eventing_download_links = exports.api.get_eventing_download_links(
         eventing_links_request)
 
-    for link in eventing_download_links:
-        print link
+    # TODO: add more descriptive information or send to text file
+    logging.info('\n' + tabulate([[link] for link in eventing_download_links],
+                                 headers='firstrow'))
 
 
 def parser(subparsers):

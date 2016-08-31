@@ -80,10 +80,10 @@ def lookup_partner_id_by_short_name(partner_short_name):
         return response.json()['elements'][0]['id']
 
     except requests.exceptions.HTTPError:
-        logging.error("""
-            Could not retrieve partner_id for {}. Please check that the
-            partner short name was entered correctly.
-            """.format(partner_short_name))
+        logging.error(
+            'Could not retrieve partner_id for {}. Please check that the '
+            'partner short name was entered correctly.'
+            .format(partner_short_name))
         raise
 
 
