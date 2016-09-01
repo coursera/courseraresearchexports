@@ -16,7 +16,8 @@
 
 from courseraresearchexports.exports import utils
 from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM,\
-    EXPORT_TYPE_GRADEBOOK, EXPORT_TYPE_TABLES, SCHEMA_NAMES
+    EXPORT_TYPE_GRADEBOOK, EXPORT_TYPE_TABLES, SCHEMA_NAMES, \
+    ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED
 
 
 class ExportRequest:
@@ -98,6 +99,12 @@ class ExportRequest:
             kwargs['partner_id'] = utils.lookup_partner_id_by_short_name(
                 kwargs['partner_short_name'])
 
+        if kwargs.get('user_id_hashing'):
+            if kwargs['user_id_hashing'] == 'linked':
+                kwargs['anonymity_level'] = ANONYMITY_LEVEL_COORDINATOR
+            elif kwargs['user_id_hashing'] == 'isolated':
+                kwargs['anonymity_level'] = ANONYMITY_LEVEL_ISOLATED
+
         return cls(**kwargs)
 
     @classmethod
@@ -143,6 +150,10 @@ class ExportRequest:
 
     @property
     def export_type(self):
+        return self._export_type
+
+    @property
+    def export_type_display(self):
         if self._export_type == EXPORT_TYPE_GRADEBOOK:
             return 'GRADEBOOK'
         elif self._export_type == EXPORT_TYPE_CLICKSTREAM:
@@ -193,9 +204,30 @@ class ExportRequest:
         return self._course_id or self._partner_id or self._group_id
 
     @property
-    def schema_names(self):
+    def scope_name(self):
         """
-        String representation of schemas to be returned in export request.
+        Human readable name for this scope context. course slugs for courses,
+        partner short names for partners, but only group ids for groups (api is
+        not open)
+        :return:
+        """
+        if self._course_id:
+            return utils.lookup_course_slug_by_id(self._course_id)
+        elif self._partner_id:
+            return utils.lookup_partner_short_name_by_id(self._partner_id)
+        elif self._group_id:
+            return self._group_id
+        else:
+            return 'UNKNOWN'
+
+    @property
+    def schema_names(self):
+        return self._schema_names
+
+    @property
+    def schema_names_display(self):
+        """
+        Display only property for schemas names.
         :return schemas:
         """
         if self._schema_names:

@@ -23,12 +23,12 @@ import requests
 from courseraoauth2client import oauth2
 from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
     RESEARCH_EXPORTS_API, CLICKSTREAM_API
-from courseraresearchexports.exports.utils import transform_response
+from courseraresearchexports.exports.utils import requests_response_to_model
 from courseraresearchexports.models.ExportRequestWithMetadata import \
     ExportRequestWithMetadata
 
 
-@transform_response(ExportRequestWithMetadata.from_response)
+@requests_response_to_model(ExportRequestWithMetadata.from_response)
 def get(export_job_id):
     """
     Use Coursera's Research Export Resource to get a data export job given an
@@ -44,7 +44,7 @@ def get(export_job_id):
     return response
 
 
-@transform_response(ExportRequestWithMetadata.from_response)
+@requests_response_to_model(ExportRequestWithMetadata.from_response)
 def get_all():
     """
     Uses Coursera's Research Exports Resource to get all data export job
@@ -60,7 +60,7 @@ def get_all():
     return response
 
 
-@transform_response(ExportRequestWithMetadata.from_response)
+@requests_response_to_model(ExportRequestWithMetadata.from_response)
 def post(export_request):
     """
     Creates a data export job using a formatted json request.
@@ -76,7 +76,7 @@ def post(export_request):
     return response
 
 
-@transform_response(lambda response: response.json())
+@requests_response_to_model(lambda response: response.json())
 def get_clickstream_download_links(clickstream_download_links_request):
     """
     Return the download links for clickstream exports in a given scope.
@@ -89,4 +89,3 @@ def get_clickstream_download_links(clickstream_download_links_request):
         auth=auth)
 
     return response
-

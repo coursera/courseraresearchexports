@@ -18,7 +18,7 @@ from tabulate import tabulate
 import logging
 
 from courseraresearchexports.containers import client
-from courseraresearchexports.utils import docker_client
+from courseraresearchexports.containers import utils
 
 
 def create_container(args):
@@ -27,7 +27,7 @@ def create_container(args):
     Export job will be downloaded and loaded into dockerized database.
     Automatically starts container.
     """
-    d = docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
 
     kwargs = {}
     if args.container_name:
@@ -49,7 +49,7 @@ def list_containers(args):
     """
     List docker containers created with Coursera data exports.
     """
-    d = docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     containers_info = client.list_all(docker_client=d)
 
     if containers_info:
@@ -75,7 +75,7 @@ def start_container(args):
     """
     Start a docker container.
     """
-    d = docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     client.start(args.container_name_or_id, docker_client=d)
 
 
@@ -83,7 +83,7 @@ def stop_container(args):
     """
     Stop a docker container.
     """
-    d = docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     client.stop(args.container_name_or_id, docker_client=d)
 
 
@@ -92,7 +92,7 @@ def remove_container(args):
     Remove a docker container, stop the container
     before removing.
     """
-    d = docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     client.remove(args.container_name_or_id, docker_client=d)
 
 
@@ -107,7 +107,8 @@ def parser(subparsers):
         epilog='Please file bugs on github at: '
         'https://github.com/coursera/courseraresearchexports/issues. If you '
         'would like to contribute to this tool\'s development, check us out '
-        'at: https://github.com/coursera/courseraresarchexports')
+        'at: https://github.com/coursera/courseraresarchexports',
+        parents=[utils.docker_client_arg_parser()])
 
     containers_subparsers = parser_containers.add_subparsers()
 

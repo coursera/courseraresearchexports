@@ -44,7 +44,7 @@ def extract_export_archive(export_archive, dest, delete_archive=True):
         raise
 
 
-def transform_response(response_transformer):
+def requests_response_to_model(response_transformer):
     """
     Creates decorator to handles errors in response from API call and
     transforms response with response_handler_func
@@ -78,7 +78,8 @@ def transform_response(response_transformer):
     return response_transform_decorator
 
 
-@transform_response(lambda response: response.json()['elements'][0]['slug'])
+@requests_response_to_model(
+    lambda response: response.json()['elements'][0]['slug'])
 def lookup_course_slug_by_id(course_id):
     """
     Find the course slug given an course_id
@@ -86,7 +87,8 @@ def lookup_course_slug_by_id(course_id):
     return requests.get(requests.compat.urljoin(COURSE_API, course_id))
 
 
-@transform_response(lambda response: response.json()['elements'][0]['id'])
+@requests_response_to_model(
+    lambda response: response.json()['elements'][0]['id'])
 def lookup_course_id_by_slug(course_slug):
     """
     Find the course_id given a course_slug
@@ -95,7 +97,8 @@ def lookup_course_id_by_slug(course_slug):
     return requests.get(COURSE_API, params=payload)
 
 
-@transform_response(lambda response: response.json()['elements'][0]['id'])
+@requests_response_to_model(
+    lambda response: response.json()['elements'][0]['id'])
 def lookup_partner_id_by_short_name(partner_short_name):
     """
     Find the partner_id by short name
@@ -104,12 +107,10 @@ def lookup_partner_id_by_short_name(partner_short_name):
     return requests.get(COURSE_API, params=payload)
 
 
-@transform_response(
+@requests_response_to_model(
     lambda response: response.json()['elements'][0]['shortName'])
 def lookup_partner_short_name_by_id(partner_id):
     """
     Find the partner_id by short name
     """
     return requests.get(requests.compat.urljoin(PARTNER_API, partner_id))
-
-

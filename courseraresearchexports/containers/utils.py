@@ -14,9 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 from io import BytesIO
 import tarfile
 import time
+
+from docker import Client
 
 
 def create_tar_archive(str, name='init-user-db.sh'):
@@ -59,3 +62,38 @@ def is_container_running(container_name_or_id, docker_client):
     container_details = docker_client.inspect_container(container_name_or_id)
 
     return container_details['State']['Running']
+
+
+def docker_client_arg_parser():
+    """Builds an argparse parser for docker client connection flags."""
+    # The following subcommands operate on a single containers. We centralize
+    # all these options here.
+    docker_parser = argparse.ArgumentParser(add_help=False)
+    docker_parser.add_argument(
+        '--docker-url',
+        help='The url of the docker demon.')
+    docker_parser.add_argument(
+        '--timeout',
+        type=int,
+        default=60,
+        help='Set the default timeout when interacting with the docker demon')
+    return docker_parser
+
+
+def docker_client(docker_url=None, timeout=60):
+    """
+    Attempts to create a docker client.
+
+     - docker_url: base url for docker
+     - timeout: timeout for docker client
+     - returns: a docker-py client
+    """
+    if docker_url:
+        return Client(
+            base_url=docker_url,
+            timeout=timeout,
+            version='auto')
+    else:
+        return Client(
+            timeout=timeout,
+            version='auto')

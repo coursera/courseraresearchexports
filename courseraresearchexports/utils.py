@@ -20,11 +20,10 @@ Coursera's tools for interacting with research data exports.
 You may install it from source, or via pip.
 """
 
-import argparse
-import requests
 import logging
 import sys
-from docker import Client
+
+import requests
 
 
 def add_logging_parser(main_parser):
@@ -83,38 +82,3 @@ def set_logging_level(args):
     if args.silence_urllib3:
         # See: https://urllib3.readthedocs.org/en/latest/security.html
         requests.packages.urllib3.disable_warnings()
-
-
-def docker_client_arg_parser():
-    """Builds an argparse parser for docker client connection flags."""
-    # The following subcommands operate on a single containers. We centralize
-    # all these options here.
-    docker_parser = argparse.ArgumentParser(add_help=False)
-    docker_parser.add_argument(
-        '--docker-url',
-        help='The url of the docker demon.')
-    docker_parser.add_argument(
-        '--timeout',
-        type=int,
-        default=60,
-        help='Set the default timeout when interacting with the docker demon')
-    return docker_parser
-
-
-def docker_client(docker_url=None, timeout=60):
-    """
-    Attempts to create a docker client.
-
-     - docker_url: base url for docker
-     - timeout: timeout for docker client
-     - returns: a docker-py client
-    """
-    if docker_url:
-        return Client(
-            base_url=docker_url,
-            timeout=timeout,
-            version='auto')
-    else:
-        return Client(
-            timeout=timeout,
-            version='auto')

@@ -40,8 +40,7 @@ def build_parser():
         epilog="""Please file bugs on github at:
         https://github.com/coursera/courseraresearchexports/issues. If you
         would like to contribute to this tool's development, check us out at:
-        https://github.com/coursera/courseraresarchexports""",
-        parents=[utils.docker_client_arg_parser()])
+        https://github.com/coursera/courseraresarchexports""")
 
     utils.add_logging_parser(parser)
 

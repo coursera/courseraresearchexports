@@ -42,8 +42,12 @@ class ContainerInfo:
         :param container_dict:
         :return container_info: ContainerInfo
         """
-        port_binding = container_dict['NetworkSettings']['Ports'][
-            '5432/tcp'][0]
+        host_config = container_dict['HostConfig']['PortBindings']
+        network_settings = container_dict['NetworkSettings']['Ports']
+
+        assigned_port = int(host_config['5432/tcp'][0]['HostPort'])
+        ip_if_running = network_settings and network_settings[
+            '5432/tcp'][0]['HostIp']
 
         return cls(
             name=container_dict['Name'][1:],  # remove prepended '\'
@@ -51,5 +55,5 @@ class ContainerInfo:
             creation_time=dateutil.parser.parse(container_dict['Created']),
             database_name=container_dict['Config']['Labels']['database_name'],
             status=container_dict['State']['Status'],
-            host_port=int(port_binding['HostPort']),
-            host_ip=port_binding['HostIp'])
+            host_port=assigned_port,
+            host_ip=ip_if_running)

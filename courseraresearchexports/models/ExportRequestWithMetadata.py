@@ -219,7 +219,7 @@ class ExportRequestWithMetadata(ExportRequest):
         """
         if self._export_type == EXPORT_TYPE_CLICKSTREAM:
             logging.error(
-                'Generate download links to access eventing export requests'
+                'Generate download links to access eventing export requests '
                 'using `courseraresearchexports jobs eventing_download_links`.'
                 ' Please refer to the Coursera Export Guide for details'
                 'https://coursera.gitbooks.io/data-exports/content/'

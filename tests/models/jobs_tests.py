@@ -24,6 +24,7 @@ import argparse
 
 
 fake_course_id = 'fake_course_id'
+fake_course_slug = 'fake_course_slug'
 
 
 @patch('courseraresearchexports.commands.jobs.exports.api.get_all')
@@ -35,9 +36,14 @@ def test_get_all(api_get_all):
     api_get_all.assert_any_call()
 
 
+@patch('courseraresearchexports.commands.jobs.exports.utils.'
+       'lookup_course_slug_by_id')
 @patch('courseraresearchexports.commands.jobs.exports.api.get')
-def test_get(api_get):
-    api_get.return_value = ExportRequestWithMetadata(course_id=fake_course_id)
+def test_get(api_get, lookup_course_slug_by_id):
+    lookup_course_slug_by_id.return_value = fake_course_slug
+    api_get.return_value = [
+        ExportRequestWithMetadata(course_id=fake_course_id)
+    ]
     args = argparse.Namespace()
     args.id = fake_course_id
 
@@ -48,7 +54,9 @@ def test_get(api_get):
 
 @patch('courseraresearchexports.commands.jobs.exports.api.post')
 def test_request(api_post):
-    api_post.return_value = ExportRequestWithMetadata(course_id=fake_course_id)
+    api_post.return_value = [
+        ExportRequestWithMetadata(course_id=fake_course_id)
+    ]
     args = argparse.Namespace()
     args.course_id = fake_course_id
     args.course_slug = None
@@ -56,21 +64,20 @@ def test_request(api_post):
     args.partner_short_name = None
     args.group_id = None
     args.export_type = None
-    args.anonymity_level = None
-    args.statement_of_purpose = None
-    args.schema_names = None
-    args.interval = None
-    args.ignore_existing = None
+    args.user_id_hashing = None
+    args.purpose = None
+    args.schemas = None
 
-    jobs.request(args)
+    jobs.request_tables(args)
 
-    api_post.assert_called_with(ExportRequest(course_id=fake_course_id))
+    export_request, = api_post.call_args[0]
+    assert export_request.course_id == fake_course_id
 
 
 @patch('courseraresearchexports.commands.jobs.exports.api.get')
 def test_download(api_get):
     export_request_mock = MagicMock(spec=ExportRequestWithMetadata)
-    api_get.return_value = export_request_mock
+    api_get.return_value = [export_request_mock]
     args = argparse.Namespace()
     args.id = fake_course_id
     args.dest = '/fake_location/'

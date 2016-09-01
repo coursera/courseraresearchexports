@@ -25,45 +25,50 @@ from courseraresearchexports.models.ClickstreamDownloadLinksRequest import \
 from courseraresearchexports.models.ExportRequest import ExportRequest
 
 
-def request(args):
+def request_clickstream(args):
     """
-    Create and send an data export request with Coursera.
+    Create and send an clickstream data export request with Coursera. Only
+    available for data coordinators.
     """
-    if args.export_type == exports.constants.EXPORT_TYPE_TABLES:
-        export_request = ExportRequest.from_args(
-            course_id=args.course_id,
-            course_slug=args.course_slug,
-            partner_id=args.partner_id,
-            parter_short_name=args.partner_short_name,
-            group_id=args.group_id,
-            export_type=args.export_type,
-            anonymity_level=args.anonymity_level,
-            statement_of_purpose=args.statement_of_purpose,
-            schema_names=args.schema_names)
-
-    elif args.export_type == exports.constants.EXPORT_TYPE_CLICKSTREAM:
-        export_request = ExportRequest.from_args(
-            course_id=args.course_id,
-            course_slug=args.course_slug,
-            partner_id=args.partner_id,
-            parter_short_name=args.partner_short_name,
-            group_id=args.group_id,
-            export_type=args.export_type,
-            anonymity_level=args.anonymity_level,
-            statement_of_purpose=args.statement_of_purpose,
-            interval=args.interval,
-            ignore_existing=args.ignore_existing)
-
-    else:
-        err_msg = 'Export type must be clickstream or tables, '
-        'but found {}. Please visit https://github.com/coursera/'
-        'courseraresearchexports for example usage.'.format(args.export_type)
-        logging.error(err_msg)
-        raise ValueError(err_msg)
+    export_request = ExportRequest.from_args(
+        course_id=args.course_id,
+        course_slug=args.course_slug,
+        partner_id=args.partner_id,
+        parter_short_name=args.partner_short_name,
+        group_id=args.group_id,
+        anonymity_level=exports.constants.ANONYMITY_LEVEL_COORDINATOR,
+        statement_of_purpose=args.purpose,
+        export_type=exports.constants.EXPORT_TYPE_CLICKSTREAM,
+        interval=args.interval,
+        ignore_existing=args.ignore_existing)
 
     export_request_with_metadata = exports.api.post(export_request)[0]
 
-    logging.info('Successfully created request {id}.'
+    logging.info('Successfully created clickstream export request {id}.'
+                 .format(id=export_request_with_metadata.id))
+    logging.debug('Request created with json body:\n{json}'
+                  .format(json=json.dumps(
+                        export_request_with_metadata.to_json(), indent=2)))
+
+
+def request_tables(args):
+    """
+    Create and send a tables data export request with Coursera.
+    """
+    export_request = ExportRequest.from_args(
+        course_id=args.course_id,
+        course_slug=args.course_slug,
+        partner_id=args.partner_id,
+        parter_short_name=args.partner_short_name,
+        group_id=args.group_id,
+        user_id_hashing=args.user_id_hashing,
+        statement_of_purpose=args.purpose,
+        export_type=exports.constants.EXPORT_TYPE_TABLES,
+        schema_names=args.schemas)
+
+    export_request_with_metadata = exports.api.post(export_request)[0]
+
+    logging.info('Successfully created tables export request {id}.'
                  .format(id=export_request_with_metadata.id))
     logging.debug('Request created with json body:\n{json}'
                   .format(json=json.dumps(
@@ -78,15 +83,16 @@ def get(args):
 
     export_request_info = [
         ['Export Job Id:', export_request.id],
-        ['Export Type:', export_request.export_type],
+        ['Export Type:', export_request.export_type_display],
         ['Status:', export_request.status],
         ['Scope Context:', export_request.scope_context],
         ['Scope Id:', export_request.scope_id],
+        ['Scope Name:', export_request.scope_name],
         ['Created:', export_request.created_at.strftime('%c')]]
 
     if export_request.schema_names:
         export_request_info.append(
-            ['Schemas:', export_request.schema_names])
+            ['Schemas:', export_request.schema_names_display])
 
     if export_request.download_link:
         export_request_info.append(
@@ -110,12 +116,12 @@ def get_all(args):
     for export_request in sorted(export_requests, key=lambda x: x.created_at,
                                  reverse=True):
         export_requests_table.append([
-            export_request.created_at.strftime('%Y-%m-%d'),
+            export_request.created_at.strftime('%Y-%m-%d %H:%M'),
             export_request.id,
             export_request.status,
-            export_request.export_type,
+            export_request.export_type_display,
             export_request.scope_id,
-            export_request.schema_names])
+            export_request.schema_names_display])
 
     logging.info('\n' + tabulate(export_requests_table, headers='firstrow'))
 
@@ -174,7 +180,7 @@ def parser(subparsers):
     parser_get_all = jobs_subparsers.add_parser(
         'get_all',
         help=get_all.__doc__,
-        description = get_all.__doc__)
+        description=get_all.__doc__)
     parser_get_all.set_defaults(func=get_all)
 
     parser_get = jobs_subparsers.add_parser(
@@ -246,9 +252,9 @@ def create_scope_subparser(parser):
 def create_request_parser(subparsers):
     parser_request = subparsers.add_parser(
         'request',
-        help=request.__doc__,
-        description=request.__doc__)
-    parser_request.set_defaults(func=request)
+        help='Create and send a data export request with Coursera.',
+        description='Create and send a data export request with Coursera. '
+        'Use subcommands to specify the export request type.')
     request_subparsers = parser_request.add_subparsers()
 
     # common arguments between schema and eventing exports
@@ -257,7 +263,7 @@ def create_request_parser(subparsers):
     create_scope_subparser(request_args_parser)
 
     request_args_parser.add_argument(
-        '--statement_of_purpose',
+        '--purpose',
         required=True,
         help='Please let us know how you plan to use the '
         'data, what types of research questions you\'re asking, who will '
@@ -267,53 +273,37 @@ def create_request_parser(subparsers):
     # tables subcommand
     parser_tables = request_subparsers.add_parser(
         'tables',
-        help='Create a data export request for specified tables.',
-        description='Create a data export request for specified tables.',
+        help=request_tables.__doc__,
+        description=request_tables.__doc__,
         parents=[request_args_parser])
+    parser_tables.set_defaults(func=request_tables)
 
     parser_tables.add_argument(
-        '--export_type',
-        choices=exports.constants.EXPORT_TYPE_TABLES,
-        default=exports.constants.EXPORT_TYPE_TABLES,
-        help=argparse.SUPPRESS)
+        '--user_id_hashing',
+        choices=['linked', 'isolated'],
+        default='isolated',
+        help='The level of user_id hashing in the data export. With \'linked\''
+        ' user_id hashing, users can be identified between table schemas. '
+        'With \'isolated\' user_id hashing, users have independent ids in'
+        'different schemas and cannot be linked. Only data coordinators have '
+        'access to \'linked\' users_ids to restrict PII.')
 
     parser_tables.add_argument(
-        '--anonymity_level',
-        choices=exports.constants.ANONYMITY_LEVELS,
-        default=exports.constants.ANONYMITY_LEVEL_ISOLATED,
-        help='{0} corresponds to data coordinator exports. '
-        '{1} has different user id columns in every domain.'
-        .format(exports.constants.ANONYMITY_LEVEL_COORDINATOR,
-                exports.constants.ANONYMITY_LEVEL_ISOLATED))
-
-    parser_tables.add_argument(
-        '--schema_names',
+        '--schemas',
         choices=exports.constants.SCHEMA_NAMES,
         nargs='+',
         default=exports.constants.SCHEMA_NAMES,
-        help='Data schemas to export. Any combination of: ' +
-             ', '.join(exports.constants.SCHEMA_NAMES))
+        help='Data schemas to export. Any combination of: {}. By default this '
+        'will be all available schemas.'.format(
+            ', '.join(exports.constants.SCHEMA_NAMES)))
 
     # clickstream subcommand
     parser_clickstream = request_subparsers.add_parser(
         'clickstream',
-        help='Create a data export request for clickstream data. Only '
-        'available for data coordinators.',
-        description='Create a data export request for clickstream data. Only '
-        'available for data coordinators.',
+        help=request_clickstream.__doc__,
+        description=request_clickstream.__doc__,
         parents=[request_args_parser])
-
-    parser_clickstream.add_argument(
-        '--export_type',
-        choices=exports.constants.EXPORT_TYPE_CLICKSTREAM,
-        default=exports.constants.EXPORT_TYPE_CLICKSTREAM,
-        help=argparse.SUPPRESS)
-
-    parser_clickstream.add_argument(
-        '--anonymity_level',
-        choices=exports.constants.ANONYMITY_LEVEL_COORDINATOR,
-        default=exports.constants.ANONYMITY_LEVEL_COORDINATOR,
-        help=argparse.SUPPRESS)
+    parser_clickstream.set_defaults(func=request_clickstream)
 
     parser_clickstream.add_argument(
         '--interval',

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM, \
+from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM,\
     EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES, EXPORT_TYPE_TABLES
 from courseraresearchexports.models.ExportRequest import ExportRequest
 from courseraresearchexports.models.ExportRequestWithMetadata import \
@@ -87,15 +87,16 @@ def test_schemas():
         course_id=fake_course_id, export_type=EXPORT_TYPE_TABLES,
         schema_names=SCHEMA_NAMES)
 
-    assert eventing_request.schema_names == None
-    assert gradebook_request.schema_names == None
-    assert all_tables_request.schema_names == 'all'
+    assert eventing_request.schema_names_display is None
+    assert gradebook_request.schema_names_display is None
+    assert all_tables_request.schema_names_display == 'all'
 
 
 def test_export_request_with_metadata_from_export_request():
     export_request = ExportRequest.from_args(course_id=fake_course_id)
-    export_request_with_metadata = ExportRequestWithMetadata.from_parent(
-        export_request, id=fake_export_id)
+    export_request_with_metadata = \
+        ExportRequestWithMetadata.from_export_request(
+            export_request, id=fake_export_id)
 
     assert export_request.course_id == export_request_with_metadata.course_id
 

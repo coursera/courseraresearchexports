@@ -186,7 +186,8 @@ def create_from_export_request_id(export_request_id, docker_client,
                                   container_name=None, database_name=None):
     """
     Create a docker container containing the export data from a given
-    export request
+    export request. Container and database name will be inferred as the
+    course slug or partner short name from export_request if not provided.
     :param export_request_id:
     :param docker_client:
     :param container_name:
@@ -194,6 +195,11 @@ def create_from_export_request_id(export_request_id, docker_client,
     :return container_id:
     """
     export_request = exports.api.get(export_request_id)[0]
+
+    if export_request.export_type != exports.constants.EXPORT_TYPE_TABLES:
+        logging.error('Sorry, container creation is only available with '
+                      'tables data exports.')
+        raise ValueError('Invalid Export Type.')
 
     logging.info('Downloading export {}'.format(export_request_id))
     export_archive = export_request.download(dest=COURSERA_LOCAL_FOLDER)
@@ -205,9 +211,10 @@ def create_from_export_request_id(export_request_id, docker_client,
     container_id = create_from_folder(
         export_data_folder=export_data_folder,
         docker_client=docker_client,
-        database_name=(database_name if database_name else 'coursera-exports'),
-        container_name=(
-            container_name if container_name else export_request_id)
+        database_name=(database_name if database_name
+                       else export_request.scope_name),
+        container_name=(container_name if container_name
+                        else export_request.scope_name)
     )
 
     shutil.rmtree(export_data_folder)
