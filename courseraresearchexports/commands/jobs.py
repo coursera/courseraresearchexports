@@ -157,7 +157,7 @@ def get_clickstream_links(args):
     # TODO: add more descriptive information or option write to text file
     logging.info('\n' + tabulate(
         [[link] for link in clickstream_download_links],
-        headers='firstrow'))
+        tablefmt="plain"))
 
 
 def parser(subparsers):
