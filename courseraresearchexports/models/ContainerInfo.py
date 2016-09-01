@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
+import dateutil.parser
 
 
 class ContainerInfo:
@@ -24,7 +24,7 @@ class ContainerInfo:
     """
 
     def __init__(self, name=None, id=None, host_port=None, host_ip=None,
-                 creation_time=None, status=None):
+                 creation_time=None, database_name=None, status=None):
         self.name = name
         self.id = id
         self.short_id = id[:12] if id else None
@@ -32,31 +32,24 @@ class ContainerInfo:
         self.host_ip = host_ip
         self.creation_time = creation_time
         self.status = status
+        self.database_name = database_name
 
-    @staticmethod
-    def from_container_dict(container_dict):
+    @classmethod
+    def from_container_dict(cls, container_dict):
         """
         Create ContainerInfo using the response from docker-py Client's
-        `containers` method.
+        `inspect-container` method.
         :param container_dict:
         :return container_info: ContainerInfo
         """
-        ip, port = get_container_host_ip_and_port(container_dict)
-        return ContainerInfo(
-            name=container_dict['Names'][0][1:],  # remove prepended '\'
+        port_binding = container_dict['NetworkSettings']['Ports'][
+            '5432/tcp'][0]
+
+        return cls(
+            name=container_dict['Name'][1:],  # remove prepended '\'
             id=container_dict['Id'],
-            creation_time=datetime.fromtimestamp(container_dict['Created']),
-            status=container_dict['Status'],
-            host_port=port,
-            host_ip=ip)
-
-
-def get_container_host_ip_and_port(container_dict):
-    """
-    Find host port bound to postgres port
-    :param container_dict: as returned by docker-py.Client.containers()
-    :return ip, port:
-    """
-    ip = container_dict['Ports'][0]['IP']
-    port = container_dict['Ports'][0]['PublicPort']
-    return ip, port
+            creation_time=dateutil.parser.parse(container_dict['Created']),
+            database_name=container_dict['Config']['Labels']['database_name'],
+            status=container_dict['State']['Status'],
+            host_port=int(port_binding['HostPort']),
+            host_ip=port_binding['HostIp'])

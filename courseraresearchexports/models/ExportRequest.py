@@ -15,18 +15,11 @@
 # limitations under the License.
 
 from courseraresearchexports.exports import utils
-from courseraresearchexports.exports.constants import EXPORT_TYPE_EVENTING, \
-    EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES, EXPORT_TYPE_SCHEMAS
-from datetime import datetime
-from tqdm import tqdm
-from urlparse import urlparse
-import logging
-import os
-import requests
-import time
+from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM,\
+    EXPORT_TYPE_GRADEBOOK, EXPORT_TYPE_TABLES, SCHEMA_NAMES
 
 
-class ExportRequest(object):
+class ExportRequest:
     """
     Represents a export request for Coursera's research data export
     service and provides methods for serialization.
@@ -36,15 +29,15 @@ class ExportRequest(object):
                  export_type=None, anonymity_level=None,
                  statement_of_purpose=None, schema_names=None,
                  interval=None, ignore_existing=None, **kwargs):
-        self.course_id = course_id
-        self.partner_id = partner_id
-        self.group_id = group_id
-        self.export_type = export_type
-        self.anonymity_level = anonymity_level
-        self.statement_of_purpose = statement_of_purpose
-        self.schema_names = schema_names
-        self.interval = interval
-        self.ignore_existing = ignore_existing
+        self._course_id = course_id
+        self._partner_id = partner_id
+        self._group_id = group_id
+        self._export_type = export_type
+        self._anonymity_level = anonymity_level
+        self._statement_of_purpose = statement_of_purpose
+        self._schema_names = schema_names
+        self._interval = interval
+        self._ignore_existing = ignore_existing
 
     def to_json(self):
         """
@@ -55,37 +48,38 @@ class ExportRequest(object):
         """
         json_request = {}
 
-        if self.course_id:
+        if self._course_id:
             json_request['scope'] = {
                 'typeName': 'courseContext',
                 'definition': {
-                    'courseId': self.course_id
+                    'courseId': self._course_id
                 }}
-        elif self.partner_id:
+        elif self._partner_id:
             json_request['scope'] = {
                 'typeName': 'partnerContext',
                 'definition': {
                     'partnerId': {
-                        'maestroId': self.partner_id
+                        'maestroId': self._partner_id
                     }}}
-        elif self.group_id:
+        elif self._group_id:
             json_request['scope'] = {
                 'typeName': 'groupContext',
                 'definition': {
-                    'groupId': self.group_id
+                    'groupId': self._group_id
                 }}
-        if self.export_type:
-            json_request['exportType'] = self.export_type
-        if self.anonymity_level:
-            json_request['anonymityLevel'] = self.anonymity_level
-        if self.statement_of_purpose:
-            json_request['statementOfPurpose'] = self.statement_of_purpose
-        if self.schema_names:
-            json_request['schemaNames'] = self.schema_names
-        if self.interval:
-            json_request['interval'] = self.interval
-        if self.ignore_existing:
-            json_request['ignoreExisting'] = self.ignore_existing
+        if self._export_type:
+            json_request['exportType'] = self._export_type
+        if self._anonymity_level:
+            json_request['anonymityLevel'] = self._anonymity_level
+        if self._statement_of_purpose:
+            json_request['statementOfPurpose'] = self._statement_of_purpose
+        if self._schema_names:
+            json_request['schemaNames'] = self._schema_names
+        if self._interval:
+            json_request['interval'] = {
+                'start': self._interval[0], 'end': self._interval[1]}
+        if self._ignore_existing:
+            json_request['ignoreExisting'] = self._ignore_existing
 
         return json_request
 
@@ -125,14 +119,69 @@ class ExportRequest(object):
         elif request_scope_context == 'groupContext':
             kwargs['group_id'] = request_scope['definition']['groupId']
 
+        if json_request.get('interval'):
+            kwargs['interval'] = [
+                json_request['interval']['start'],
+                json_request['interval']['end']
+            ]
+
         return cls(
             export_type=json_request.get('exportType'),
             anonymity_level=json_request.get('anonymityLevel'),
             statement_of_purpose=json_request.get('statementOfPurpose'),
             schema_names=json_request.get('schemaNames'),
-            interval=json_request.get('interval'),
             ignore_existing=json_request.get('ignoreExisting'),
             **kwargs)
+
+    @property
+    def course_id(self):
+        return self._course_id
+
+    @property
+    def partner_id(self):
+        return self._partner_id
+
+    @property
+    def export_type(self):
+        if self._export_type == EXPORT_TYPE_GRADEBOOK:
+            return 'GRADEBOOK'
+        elif self._export_type == EXPORT_TYPE_CLICKSTREAM:
+            return 'CLICKSTREAM'
+        elif self._export_type == EXPORT_TYPE_TABLES:
+            return 'TABLES'
+        else:
+            return self._export_type
+
+    @property
+    def anonymity_level(self):
+        return self._anonymity_level
+
+    @property
+    def statement_of_purpose(self):
+        return self._statement_of_purpose
+
+    @property
+    def interval(self):
+        return self._interval
+
+    @property
+    def ignore_existing(self):
+        return self._ignore_existing
+
+    @property
+    def scope_context(self):
+        """
+        Context for this ExportRequest, assume that only one identifier for
+        partner/course/group is defined.
+        """
+        if self._course_id:
+            return 'COURSE'
+        elif self._partner_id:
+            return 'PARTNER'
+        elif self._group_id:
+            return 'GROUP'
+        else:
+            return None
 
     @property
     def scope_id(self):
@@ -141,23 +190,19 @@ class ExportRequest(object):
         is defined for a valid request.
         :return scope_id:
         """
-        return self.course_id or self.partner_id or self.group_id
+        return self._course_id or self._partner_id or self._group_id
 
     @property
-    def schemas(self):
+    def schema_names(self):
         """
         String representation of schemas to be returned in export request.
         :return schemas:
         """
-        if self.export_type == EXPORT_TYPE_EVENTING:
-            return 'events'
-        elif self.export_type == EXPORT_TYPE_GRADEBOOK:
-            return 'gradebook'
-        elif self.schema_names:
-            if set(self.schema_names) == set(SCHEMA_NAMES):
+        if self._schema_names:
+            if set(self._schema_names) == set(SCHEMA_NAMES):
                 return 'all'
             else:
-                return ','.join(self.schema_names)
+                return ','.join(self._schema_names)
         else:
             return None
 
@@ -169,203 +214,3 @@ class ExportRequest(object):
         if type(other) is type(self):
             return self.__dict__ == other.__dict__
         return False
-
-
-class ExportRequestMetadata(object):
-    """Metadata about the internal timings of the export request"""
-
-    def __init__(self, created_by=None, created_at=None, started_at=None,
-                 completed_at=None, snapshot_at=None, **kwargs):
-        self.created_by = created_by
-        self.created_at = created_at
-        self.started_at = started_at
-        self.completed_at = completed_at
-        self.snapshot_at = snapshot_at
-
-    def to_json(self):
-        """
-        Serialize metadata from json object.
-        :return json_metadata:
-        """
-        json_metadata = {}
-        if self.created_by:
-            json_metadata['createdBy'] = self.created_by
-        if self.created_at:
-            json_metadata['createdAt'] = datetime_to_ts(self.created_at)
-        if self.started_at:
-            json_metadata['startedAt'] = datetime_to_ts(self.started_at)
-        if self.completed_at:
-            json_metadata['completedAt'] = datetime_to_ts(self.completed_at)
-        if self.snapshot_at:
-            json_metadata['snapshotAt'] = datetime_to_ts(self.snapshot_at)
-
-        return json_metadata
-
-    @classmethod
-    def from_json(cls, json_metadata):
-        """
-        Deserialize ExportRequestMetaData from json object.
-        :param json_metadata:
-        :return export_request_metadata: ExportRequestMetadata
-        """
-        if json_metadata:
-            kwargs = {}
-            if json_metadata.get('createdBy'):
-                kwargs['created_by'] = json_metadata['createdBy']
-            if json_metadata.get('createdAt'):
-                kwargs['created_at'] = timestamp_to_dt(
-                    json_metadata['createdAt'])
-            if json_metadata.get('completedAt'):
-                kwargs['completed_at'] = timestamp_to_dt(
-                    json_metadata['completedAt'])
-            if json_metadata.get('startedAt'):
-                kwargs['started_at'] = timestamp_to_dt(
-                    json_metadata['startedAt'])
-            if json_metadata.get('snapshotAt'):
-                kwargs['snapshot_at'] = timestamp_to_dt(
-                    json_metadata['snapshotAt'])
-            return cls(**kwargs)
-
-        else:
-            return None
-
-
-class ExportRequestWithMetadata(ExportRequest):
-    """
-    Class representing a export request from Coursera's research data export
-    service with metadata about its status.
-    """
-
-    def __init__(self, course_id=None, partner_id=None, group_id=None,
-                 export_type=None, anonymity_level=None,
-                 statement_of_purpose=None, schema_names=None,
-                 interval=None, ignore_existing=None, id=None,
-                 status=None, download_link=None, metadata=None, **kwargs):
-        super(ExportRequestWithMetadata, self).__init__(
-            course_id=course_id, partner_id=partner_id,
-            group_id=group_id, export_type=export_type,
-            anonymity_level=anonymity_level,
-            statement_of_purpose=statement_of_purpose,
-            schema_names=schema_names, interval=interval,
-            ignore_existing=ignore_existing)
-        self.id = id
-        self.status = status
-        self.download_link = download_link
-        self.metadata = metadata
-
-    def to_json(self):
-        """
-        Serialize ExportRequestWithMetadata to json object
-        :return json_request:
-        """
-        json_request = ExportRequest.to_json(self)
-
-        if self.id:
-            json_request['id'] = self.id
-        if self.status:
-            json_request['status'] = self.status
-        if self.download_link:
-            json_request['downloadLink'] = self.download_link
-        if self.metadata:
-            json_request['metadata'] = self.metadata.to_json()
-
-        return json_request
-
-    @classmethod
-    def from_parent(cls, parent, id=None, status=None, download_link=None,
-                    metadata=None, **kwargs):
-        return cls(
-            course_id=parent.course_id, partner_id=parent.partner_id,
-            group_id=parent.group_id, export_type=parent.export_type,
-            anonymity_level=parent.anonymity_level,
-            statement_of_purpose=parent.statement_of_purpose,
-            schema_names=parent.schema_names, interval=parent.interval,
-            ignore_existing=parent.ignore_existing, id=id, status=status,
-            download_link=download_link, metadata=metadata)
-
-    @classmethod
-    def from_json(cls, json_request):
-        """
-        Deserialize ExportRequest from json object.
-        :param json_request:
-        :return export_request: ExportRequestWithMetadata
-        """
-        parent = super(cls, cls).from_json(json_request)
-
-        return cls.from_parent(
-            parent=parent,
-            id=json_request.get('id'),
-            status=json_request.get('status'),
-            download_link=json_request.get('downloadLink'),
-            metadata=ExportRequestMetadata.from_json(
-                json_request.get('metadata')))
-
-    @property
-    def created_at(self):
-        if self.metadata and self.metadata.created_at:
-            return self.metadata.created_at
-        else:
-            return datetime.fromtimestamp(0)
-
-    def download(self, dest):
-        """
-        Download an export archive associated with this export request
-        :param dest:
-        :return output_filename:
-        """
-        if self.export_type == EXPORT_TYPE_EVENTING:
-            logging.error(
-                'Generate download links to access eventing export requests'
-                'using `courseraresearchexports jobs eventing_download_links`.'
-                ' Please refer to the Coursera Export Guide for details'
-                'https://coursera.gitbooks.io/data-exports/content/'
-                'introduction/programmatic_access.html')
-            raise ValueError(
-                'Require export_type = {}'.format(EXPORT_TYPE_SCHEMAS))
-        elif not self.download_link:
-            if self.status in ['PENDING', 'IN_PROGRESS']:
-                logging.error(
-                    'Export request {} is currently {} and is not ready for'
-                    'download. Please wait until the request is completed.'
-                    .format(self.id, self.status))
-                raise ValueError(
-                    'Export request is not yet ready for download')
-            elif self.status == 'TERMINATED':
-                logging.error(
-                    'Export request has been TERMINATED. Please contact '
-                    'data-support@coursera.org if we have not resolved this '
-                    'within 24 hours.')
-                raise ValueError('Export request has been TERMINATED')
-            else:
-                logging.error('Download link was not found.')
-                raise ValueError('Download link was not found')
-
-        if not os.path.exists(dest):
-            logging.debug('Creating destination folder: {}'.format(dest))
-            os.makedirs(dest)
-
-        export_filename = urlparse(self.download_link).path.split('/')[-1]
-        response = requests.get(self.download_link, stream=True)
-        chunk_size = 1024 * 1024
-        output_filename = os.path.join(dest, export_filename)
-        logging.debug('Writing to file: {}'.format(output_filename))
-
-        with open(output_filename, 'wb') as f:
-            for data in tqdm(
-                    iterable=response.iter_content(chunk_size),
-                    total=int(response.headers['Content-length']) / chunk_size,
-                    unit='MB',
-                    desc=export_filename):
-                f.write(data)
-
-        return output_filename
-
-
-def datetime_to_ts(dt):
-    """Convert datetime object to timestamp in milliseconds"""
-    return int(time.mktime(dt.timetuple()) * 1000)
-
-
-def timestamp_to_dt(ts):
-    """Convert timestamp in milliseconds to datetime object"""
-    return datetime.fromtimestamp(ts / 1000.0)

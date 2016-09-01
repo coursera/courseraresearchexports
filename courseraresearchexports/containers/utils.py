@@ -44,9 +44,9 @@ def get_next_available_port(containers_info):
     :param containers_info:
     :return port:
     """
-    ports = [container_info.port for container_info in containers_info]
+    ports = [container_info.host_port for container_info in containers_info]
 
-    return max(ports) + 1 if ports else 5433
+    return (max(ports) + 1) if ports else 5433
 
 
 def is_container_running(container_name_or_id, docker_client):

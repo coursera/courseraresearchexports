@@ -28,7 +28,9 @@ import sys
 
 
 def build_parser():
-    "Build an argparse argument parser to parse the command line."
+    """
+    Build an argparse argument parser to parse the command line.
+    """
 
     parser = argparse.ArgumentParser(
         description="""Coursera tools for interacting with research exports.
@@ -62,7 +64,9 @@ def build_parser():
 
 
 def main():
-    "Boots up the command line tool"
+    """
+    Boots up the command line tool
+    """
     logging.captureWarnings(True)
     args = build_parser().parse_args()
     # Configure logging

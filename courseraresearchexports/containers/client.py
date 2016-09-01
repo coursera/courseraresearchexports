@@ -19,13 +19,15 @@ Coursera's tools for managing docker containers configured with a
 postgres database.
 """
 
-from courseraresearchexports import exports
-from courseraresearchexports.containers import utils
-from courseraresearchexports.models.ContainerInfo import ContainerInfo
 import logging
 import os
 import shutil
 import time
+
+from courseraresearchexports import exports
+from courseraresearchexports.containers import utils
+from courseraresearchexports.models.ContainerInfo import ContainerInfo
+
 
 COURSERA_DOCKER_LABEL = 'courseraResearchExport'
 COURSERA_LOCAL_FOLDER = os.path.expanduser('~/.coursera/exports/')
@@ -40,8 +42,9 @@ def list_all(docker_client):
     :param docker_client:
     :return containers_info: [ContainerInfo]
     """
-    return [ContainerInfo.from_container_dict(container_dict)
-            for container_dict in docker_client.containers(
+    return [ContainerInfo.from_container_dict(
+            docker_client.inspect_container(container))
+            for container in docker_client.containers(
             all=True, filters={'label': COURSERA_DOCKER_LABEL})]
 
 
@@ -118,9 +121,9 @@ def initialize(container_name_or_id, docker_client):
         raise
 
 
-def create_from_folder(
-        export_data_folder, docker_client, container_name='coursera-exports',
-        database_name='coursera-exports'):
+def create_from_folder(export_data_folder, docker_client,
+                       container_name='coursera-exports',
+                       database_name='coursera-exports'):
     """
     Using a folder containing a Coursera research export, create a docker
      container with the export data loaded into a data base and start the
@@ -132,22 +135,22 @@ def create_from_folder(
     :return container_id:
     """
     if not docker_client.images(name=POSTGRES_DOCKER_IMAGE):
-        logging.warn('Downloading image: {}'.format(POSTGRES_DOCKER_IMAGE))
+        logging.info('Downloading image: {}'.format(POSTGRES_DOCKER_IMAGE))
         docker_client.import_image(image=POSTGRES_DOCKER_IMAGE)
 
-    for existingContainer in docker_client.containers(
+    for existing_container in docker_client.containers(
             all=True, filters={'name': container_name}):
         logging.info('Removing existing container with name: {}'.format(
             container_name))
-        docker_client.stop(existingContainer)
-        docker_client.remove_container(existingContainer)
+        docker_client.stop(existing_container)
+        docker_client.remove_container(existing_container)
 
     logging.debug('Creating containers from {folder}'.format(
         folder=export_data_folder))
     container = docker_client.create_container(
         image=POSTGRES_DOCKER_IMAGE,
         name=container_name,
-        labels=[COURSERA_DOCKER_LABEL],
+        labels={COURSERA_DOCKER_LABEL: None, 'database_name': database_name},
         volumes=['/mnt/exportData'],
         host_config=docker_client.create_host_config(
             binds=['{}:/mnt/exportData:ro'.format(export_data_folder)],
@@ -179,15 +182,18 @@ def create_from_folder(
     return container_id
 
 
-def create_from_export_request_id(export_request_id, docker_client):
+def create_from_export_request_id(export_request_id, docker_client,
+                                  container_name=None, database_name=None):
     """
     Create a docker container containing the export data from a given
     export request
     :param export_request_id:
     :param docker_client:
+    :param container_name:
+    :param database_name:
     :return container_id:
     """
-    export_request = exports.api.get(export_request_id)
+    export_request = exports.api.get(export_request_id)[0]
 
     logging.info('Downloading export {}'.format(export_request_id))
     export_archive = export_request.download(dest=COURSERA_LOCAL_FOLDER)
@@ -198,8 +204,11 @@ def create_from_export_request_id(export_request_id, docker_client):
 
     container_id = create_from_folder(
         export_data_folder=export_data_folder,
-        container_name=export_request_id,
-        docker_client=docker_client)
+        docker_client=docker_client,
+        database_name=(database_name if database_name else 'coursera-exports'),
+        container_name=(
+            container_name if container_name else export_request_id)
+    )
 
     shutil.rmtree(export_data_folder)
 

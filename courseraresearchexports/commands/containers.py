@@ -14,10 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.containers import client
-from courseraresearchexports.utils import docker_client
 from tabulate import tabulate
 import logging
+
+from courseraresearchexports.containers import client
+from courseraresearchexports.utils import docker_client
 
 
 def create_container(args):
@@ -27,8 +28,19 @@ def create_container(args):
     Automatically starts container.
     """
     d = docker_client(args.docker_url, args.timeout)
-    container_id = client.create_from_export_request_id(
-        args.export_request_id, docker_client=d)
+
+    kwargs = {}
+    if args.container_name:
+        kwargs['container_name'] = args.container_name
+    if args.database_name:
+        kwargs['database_name'] = args.database_name
+
+    if args.export_request_id:
+        container_id = client.create_from_export_request_id(
+            args.export_request_id, docker_client=d, **kwargs)
+    elif args.export_data_folder:
+        container_id = client.create_from_folder(
+            args.export_data_folder, docker_client=d, **kwargs)
 
     logging.info('Container {:.12} ready.'.format(container_id))
 
@@ -41,13 +53,14 @@ def list_containers(args):
     containers_info = client.list_all(docker_client=d)
 
     if containers_info:
-        containers_info_table = [
-            ['Name', 'Container Id', 'Created', 'Status', 'Host IP', 'Port']]
+        containers_info_table = [['Name', 'Container Id', 'Database',
+                                  'Created', 'Status', 'Host IP', 'Port']]
 
         for container_info in containers_info:
             containers_info_table.append([
                 container_info.name,
                 container_info.short_id,
+                container_info.database_name,
                 container_info.creation_time.strftime('%c'),
                 container_info.status,
                 container_info.host_ip,
@@ -103,15 +116,23 @@ def parser(subparsers):
         help=create_container.__doc__,
         description=create_container.__doc__)
     parser_create.set_defaults(func=create_container)
-    parser_create.add_argument(
-        'export_request_id',
+
+    source_subparser = parser_create.add_mutually_exclusive_group(
+        required=True)
+
+    source_subparser.add_argument(
+        '--export_request_id',
         help='Export job to download and create containers')
-    # parser_createContainer.add_argument(
-    #     '--containerName',
-    #     help='Name for docker containers.')
-    # parser_createContainer.add_argument(
-    #     '--databaseName'
-    #     help='Name for containers inside containers')
+    source_subparser.add_argument(
+        '--export_data_folder',
+        help='Location of already downloaded export data')
+
+    parser_create.add_argument(
+        '--container_name',
+        help='Name for docker container.')
+    parser_create.add_argument(
+        '--database_name',
+        help='Name for database inside container.')
 
     parser_list = containers_subparsers.add_parser(
         'list',

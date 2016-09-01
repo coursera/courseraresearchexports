@@ -14,35 +14,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports import exports
-from courseraresearchexports.models.EventingDownloadLinksRequest import \
-    EventingDownloadLinksRequest
-from courseraresearchexports.models.ExportRequest import ExportRequest
-from requests.exceptions import HTTPError
 from tabulate import tabulate
 import json
 import argparse
 import logging
+
+from courseraresearchexports import exports
+from courseraresearchexports.models.ClickstreamDownloadLinksRequest import \
+    ClickstreamDownloadLinksRequest
+from courseraresearchexports.models.ExportRequest import ExportRequest
 
 
 def request(args):
     """
     Create and send an data export request with Coursera.
     """
-    export_request = ExportRequest.from_args(
-        course_id=args.course_id,
-        course_slug=args.course_slug,
-        partner_id=args.partner_id,
-        parter_short_name=args.partner_short_name,
-        group_id=args.group_id,
-        export_type=args.export_type,
-        anonymity_level=args.anonymity_level,
-        statement_of_purpose=args.statement_of_purpose,
-        schema_names=args.schema_names,
-        interval=args.interval,
-        ignore_existing=args.ignore_existing)
+    if args.export_type == exports.constants.EXPORT_TYPE_TABLES:
+        export_request = ExportRequest.from_args(
+            course_id=args.course_id,
+            course_slug=args.course_slug,
+            partner_id=args.partner_id,
+            parter_short_name=args.partner_short_name,
+            group_id=args.group_id,
+            export_type=args.export_type,
+            anonymity_level=args.anonymity_level,
+            statement_of_purpose=args.statement_of_purpose,
+            schema_names=args.schema_names)
 
-    export_request_with_metadata = exports.api.post(export_request)
+    elif args.export_type == exports.constants.EXPORT_TYPE_CLICKSTREAM:
+        export_request = ExportRequest.from_args(
+            course_id=args.course_id,
+            course_slug=args.course_slug,
+            partner_id=args.partner_id,
+            parter_short_name=args.partner_short_name,
+            group_id=args.group_id,
+            export_type=args.export_type,
+            anonymity_level=args.anonymity_level,
+            statement_of_purpose=args.statement_of_purpose,
+            interval=args.interval,
+            ignore_existing=args.ignore_existing)
+
+    else:
+        err_msg = 'Export type must be clickstream or tables, '
+        'but found {}. Please visit https://github.com/coursera/'
+        'courseraresearchexports for example usage.'.format(args.export_type)
+        logging.error(err_msg)
+        raise ValueError(err_msg)
+
+    export_request_with_metadata = exports.api.post(export_request)[0]
 
     logging.info('Successfully created request {id}.'
                  .format(id=export_request_with_metadata.id))
@@ -55,24 +74,27 @@ def get(args):
     """
     Get the details and status of a data export request using a job id.
     """
-    try:
-        export_request = exports.api.get(args.id)
-    except HTTPError as err:
-        logging.error('Export request {id} could not be found.\n{err}'
-                      .format(id=args.id, err=err))
-        raise
+    export_request = exports.api.get(args.id)[0]
 
     export_request_info = [
         ['Export Job Id:', export_request.id],
-        ['Scope Id:', export_request.scope_id],
         ['Export Type:', export_request.export_type],
-        ['Created:', export_request.created_at.strftime('%c')],
         ['Status:', export_request.status],
-        ['Schemas:', export_request.schemas]]
+        ['Scope Context:', export_request.scope_context],
+        ['Scope Id:', export_request.scope_id],
+        ['Created:', export_request.created_at.strftime('%c')]]
+
+    if export_request.schema_names:
+        export_request_info.append(
+            ['Schemas:', export_request.schema_names])
 
     if export_request.download_link:
         export_request_info.append(
             ['Download Link:', export_request.download_link])
+
+    if export_request.interval:
+        export_request_info.append(
+            ['Interval:', '_'.join(export_request.interval)])
 
     logging.info('\n' + tabulate(export_request_info, tablefmt="plain"))
 
@@ -81,13 +103,7 @@ def get_all(args):
     """
     Get the details and status of your data export requests.
     """
-    try:
-        export_requests = exports.api.get_all()
-
-    except HTTPError as err:
-        logging.error('Export requests could not be loaded.\n{err}'
-                      .format(err))
-        raise
+    export_requests = exports.api.get_all()
 
     export_requests_table = [['Created', 'Request Id', 'Status', 'Type',
                               'Scope', 'Schemas']]
@@ -99,7 +115,7 @@ def get_all(args):
             export_request.status,
             export_request.export_type,
             export_request.scope_id,
-            export_request.schemas])
+            export_request.schema_names])
 
     logging.info('\n' + tabulate(export_requests_table, headers='firstrow'))
 
@@ -109,22 +125,19 @@ def download(args):
     Download a data export job using a request id.
     """
     try:
-        export_request = exports.api.get(args.id)
+        export_request = exports.api.get(args.id)[0]
         export_request.download(args.dest)
-    except HTTPError as err:
-        logging.error('Export request {id} could not be found.\n{err}'
-                      .format(id=args.id, err=err))
-        raise
+
     except Exception as err:
         logging.error('Download failed.\n{err}'.format(err=err))
         raise
 
 
-def get_eventing_links(args):
+def get_clickstream_links(args):
     """
-    Generate links for eventing exports
+    Generate links for clickstream data exports
     """
-    eventing_links_request = EventingDownloadLinksRequest.from_args(
+    clickstream_links_request = ClickstreamDownloadLinksRequest.from_args(
         course_id=args.course_id,
         course_slug=args.course_slug,
         partner_id=args.partner_id,
@@ -132,12 +145,13 @@ def get_eventing_links(args):
         group_id=args.group_id,
         interval=args.interval)
 
-    eventing_download_links = exports.api.get_eventing_download_links(
-        eventing_links_request)
+    clickstream_download_links = exports.api.get_clickstream_download_links(
+        clickstream_links_request)
 
-    # TODO: add more descriptive information or send to text file
-    logging.info('\n' + tabulate([[link] for link in eventing_download_links],
-                                 headers='firstrow'))
+    # TODO: add more descriptive information or option write to text file
+    logging.info('\n' + tabulate(
+        [[link] for link in clickstream_download_links],
+        headers='firstrow'))
 
 
 def parser(subparsers):
@@ -158,13 +172,15 @@ def parser(subparsers):
     create_request_parser(jobs_subparsers)
 
     parser_get_all = jobs_subparsers.add_parser(
-        'getAll',
-        help=get_all.__doc__)
+        'get_all',
+        help=get_all.__doc__,
+        description = get_all.__doc__)
     parser_get_all.set_defaults(func=get_all)
 
     parser_get = jobs_subparsers.add_parser(
         'get',
-        help=get.__doc__)
+        help=get.__doc__,
+        description=get.__doc__)
     parser_get.set_defaults(func=get)
 
     parser_get.add_argument(
@@ -173,32 +189,32 @@ def parser(subparsers):
 
     parser_download = jobs_subparsers.add_parser(
         'download',
-        help=download.__doc__)
+        help=download.__doc__,
+        description=download.__doc__)
     parser_download.set_defaults(func=download)
 
     parser_download.add_argument(
         'id',
-        help='Export job ID')
+        help='Export request ID')
 
     parser_download.add_argument(
         '--dest',
         default='.',
         help='Destination folder')
 
-    parser_eventing_links = jobs_subparsers.add_parser(
-        'eventing_download_links',
+    parser_clickstream_links = jobs_subparsers.add_parser(
+        'clickstream_download_links',
         help='Get download links for completed eventing exports.')
-    parser_eventing_links.set_defaults(func=get_eventing_links)
+    parser_clickstream_links.set_defaults(func=get_clickstream_links)
 
-    create_scope_subparser(parser_eventing_links)
+    create_scope_subparser(parser_clickstream_links)
 
-    parser_eventing_links.add_argument(
+    parser_clickstream_links.add_argument(
         '--interval',
         nargs=2,
         metavar=('START', 'END'),
-        help='Interval of {} exported data, inclusive. '
-        '(i.e. 2016-08-01 2016-08-04).'
-        .format(exports.constants.EXPORT_TYPE_EVENTING))
+        help='Interval of exported clickstream data, inclusive. '
+        '(i.e. 2016-08-01 2016-08-04).')
 
     return parser_jobs
 
@@ -230,7 +246,8 @@ def create_scope_subparser(parser):
 def create_request_parser(subparsers):
     parser_request = subparsers.add_parser(
         'request',
-        help=request.__doc__)
+        help=request.__doc__,
+        description=request.__doc__)
     parser_request.set_defaults(func=request)
     request_subparsers = parser_request.add_subparsers()
 
@@ -239,14 +256,6 @@ def create_request_parser(subparsers):
 
     create_scope_subparser(request_args_parser)
 
-    request_args_parser.add_argument(
-        '--anonymity_level',
-        choices=exports.constants.ANONYMITY_LEVELS,
-        default=exports.constants.ANONYMITY_LEVEL_ISOLATED,
-        help='{0} corresponds to data coordinator exports. '
-        '{1} has different user id columns in every domain.'
-        .format(exports.constants.ANONYMITY_LEVEL_COORDINATOR,
-                exports.constants.ANONYMITY_LEVEL_ISOLATED))
     request_args_parser.add_argument(
         '--statement_of_purpose',
         required=True,
@@ -259,12 +268,23 @@ def create_request_parser(subparsers):
     parser_tables = request_subparsers.add_parser(
         'tables',
         help='Create a data export request for specified tables.',
+        description='Create a data export request for specified tables.',
         parents=[request_args_parser])
 
     parser_tables.add_argument(
         '--export_type',
-        default=exports.constants.EXPORT_TYPE_SCHEMAS,
+        choices=exports.constants.EXPORT_TYPE_TABLES,
+        default=exports.constants.EXPORT_TYPE_TABLES,
         help=argparse.SUPPRESS)
+
+    parser_tables.add_argument(
+        '--anonymity_level',
+        choices=exports.constants.ANONYMITY_LEVELS,
+        default=exports.constants.ANONYMITY_LEVEL_ISOLATED,
+        help='{0} corresponds to data coordinator exports. '
+        '{1} has different user id columns in every domain.'
+        .format(exports.constants.ANONYMITY_LEVEL_COORDINATOR,
+                exports.constants.ANONYMITY_LEVEL_ISOLATED))
 
     parser_tables.add_argument(
         '--schema_names',
@@ -274,26 +294,35 @@ def create_request_parser(subparsers):
         help='Data schemas to export. Any combination of: ' +
              ', '.join(exports.constants.SCHEMA_NAMES))
 
-    # eventing subcommand
-    parser_eventing = request_subparsers.add_parser(
-        'eventing',
-        help='Create a data export request for clickstream data.',
+    # clickstream subcommand
+    parser_clickstream = request_subparsers.add_parser(
+        'clickstream',
+        help='Create a data export request for clickstream data. Only '
+        'available for data coordinators.',
+        description='Create a data export request for clickstream data. Only '
+        'available for data coordinators.',
         parents=[request_args_parser])
 
-    parser_eventing.add_argument(
+    parser_clickstream.add_argument(
         '--export_type',
-        default=exports.constants.EXPORT_TYPE_EVENTING,
+        choices=exports.constants.EXPORT_TYPE_CLICKSTREAM,
+        default=exports.constants.EXPORT_TYPE_CLICKSTREAM,
         help=argparse.SUPPRESS)
 
-    parser_eventing.add_argument(
+    parser_clickstream.add_argument(
+        '--anonymity_level',
+        choices=exports.constants.ANONYMITY_LEVEL_COORDINATOR,
+        default=exports.constants.ANONYMITY_LEVEL_COORDINATOR,
+        help=argparse.SUPPRESS)
+
+    parser_clickstream.add_argument(
         '--interval',
         nargs=2,
         metavar=('START', 'END'),
-        help='Interval of {} data to be exported(i.e. 2016-08-01 2016-08-04). '
-        'By default this will be the past day.'
-        .format(exports.constants.EXPORT_TYPE_EVENTING))
+        help='Interval of clickstream data to be exported '
+        '(i.e. 2016-08-01 2016-08-04). By default this will be the past day.')
 
-    parser_eventing.add_argument(
+    parser_clickstream.add_argument(
         '--ignore_existing',
         action='store_true',
         help='If flag is set, we will recompute clickstream data for all dates'

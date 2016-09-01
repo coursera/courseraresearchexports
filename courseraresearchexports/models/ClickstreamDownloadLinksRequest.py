@@ -14,13 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.exports import utils
 import logging
 
+from courseraresearchexports.exports import utils
 
-class EventingDownloadLinksRequest:
+
+class ClickstreamDownloadLinksRequest:
     """
-    Represents an eventing downloading links request.
+    Represents a request for clickstream download links.
     """
 
     def __init__(self, course_id=None, partner_id=None, interval=None,
@@ -32,10 +33,10 @@ class EventingDownloadLinksRequest:
     @staticmethod
     def from_args(**kwargs):
         """
-        Create a EventingDownloadLinkRequest from arguments. Performs
+        Create a ClickstreamDownloadLinkRequest from arguments. Performs
         course_id/partner_id inference.
         :param kwargs:
-        :return eventing_links_request: EventingDownloadLinksRequest
+        :return eventing_links_request: ClickstreamDownloadLinksRequest
         """
         if kwargs.get('course_slug') and not kwargs.get('course_id'):
             kwargs['course_id'] = utils.lookup_course_id_by_slug(
@@ -50,7 +51,7 @@ class EventingDownloadLinksRequest:
                 'introduction/programmatic_access.html')
             raise ValueError('Eventing exports by group is not supported.')
 
-        return EventingDownloadLinksRequest(**kwargs)
+        return ClickstreamDownloadLinksRequest(**kwargs)
 
     @property
     def scope(self):

@@ -15,7 +15,8 @@
 # limitations under the License.
 
 from courseraresearchexports.commands import jobs
-from courseraresearchexports.models.ExportRequest import ExportRequest, \
+from courseraresearchexports.models.ExportRequest import ExportRequest
+from courseraresearchexports.models.ExportRequestWithMetadata import \
     ExportRequestWithMetadata
 from mock import MagicMock
 from mock import patch

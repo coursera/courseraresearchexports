@@ -1,6 +1,7 @@
 __all__ = [
     "ExportRequest",
-    "EventingDownloadLinksRequest",
+    "ExportRequestWithMetadata",
+    "ClickstreamDownloadLinksRequest",
     "ContainerInfo"
 ]
 

@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.exports.constants import EXPORT_TYPE_EVENTING, \
-    EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES, EXPORT_TYPE_SCHEMAS
-from courseraresearchexports.models.ExportRequest import ExportRequest, \
+from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM, \
+    EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES, EXPORT_TYPE_TABLES
+from courseraresearchexports.models.ExportRequest import ExportRequest
+from courseraresearchexports.models.ExportRequestWithMetadata import \
     ExportRequestWithMetadata
 from mock import patch
 
@@ -79,16 +80,16 @@ def test_scope_id():
 
 def test_schemas():
     eventing_request = ExportRequest(
-        course_id=fake_course_id, export_type=EXPORT_TYPE_EVENTING)
+        course_id=fake_course_id, export_type=EXPORT_TYPE_CLICKSTREAM)
     gradebook_request = ExportRequest(
         course_id=fake_course_id, export_type=EXPORT_TYPE_GRADEBOOK)
     all_tables_request = ExportRequest(
-        course_id=fake_course_id, export_type=EXPORT_TYPE_SCHEMAS,
+        course_id=fake_course_id, export_type=EXPORT_TYPE_TABLES,
         schema_names=SCHEMA_NAMES)
 
-    assert eventing_request.schemas == 'events'
-    assert gradebook_request.schemas == 'gradebook'
-    assert all_tables_request.schemas == 'all'
+    assert eventing_request.schema_names == None
+    assert gradebook_request.schema_names == None
+    assert all_tables_request.schema_names == 'all'
 
 
 def test_export_request_with_metadata_from_export_request():

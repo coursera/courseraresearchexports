@@ -18,30 +18,33 @@
 Coursera's wrapper for data exports API.
 """
 
-from courseraoauth2client import oauth2
-from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
-    RESEARCH_EXPORTS_API, EVENTING_API
-from courseraresearchexports.models.ExportRequest import \
-    ExportRequestWithMetadata
 import requests
 
+from courseraoauth2client import oauth2
+from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
+    RESEARCH_EXPORTS_API, CLICKSTREAM_API
+from courseraresearchexports.exports.utils import transform_response
+from courseraresearchexports.models.ExportRequestWithMetadata import \
+    ExportRequestWithMetadata
 
+
+@transform_response(ExportRequestWithMetadata.from_response)
 def get(export_job_id):
     """
     Use Coursera's Research Export Resource to get a data export job given an
     export job id.
     :param export_job_id:
-    :return export_request: ExportRequestWithMetaData
+    :return export_request_with_metadata: [ExportRequestWithMetaData]
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
     response = requests.get(
         url=requests.compat.urljoin(RESEARCH_EXPORTS_API, export_job_id),
         auth=auth)
-    response.raise_for_status()
 
-    return ExportRequestWithMetadata.from_json(response.json()['elements'][0])
+    return response
 
 
+@transform_response(ExportRequestWithMetadata.from_response)
 def get_all():
     """
     Uses Coursera's Research Exports Resource to get all data export job
@@ -53,38 +56,37 @@ def get_all():
         url=RESEARCH_EXPORTS_API,
         auth=auth,
         params={'q': 'my'})
-    response.raise_for_status()
-    export_requests = [ExportRequestWithMetadata.from_json(export_request)
-                       for export_request in response.json()['elements']]
 
-    return export_requests
+    return response
 
 
+@transform_response(ExportRequestWithMetadata.from_response)
 def post(export_request):
     """
     Creates a data export job using a formatted json request.
     :param export_request:
-    :return export_request_with_metadata: ExportRequestWithMetadata
+    :return export_request_with_metadata: [ExportRequestWithMetadata]
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
     response = requests.post(
         url=RESEARCH_EXPORTS_API,
         json=export_request.to_json(),
         auth=auth)
-    response.raise_for_status()
 
-    return ExportRequestWithMetadata.from_json(response.json()['elements'][0])
+    return response
 
 
-def get_eventing_download_links(eventing_links_request):
+@transform_response(lambda response: response.json())
+def get_clickstream_download_links(clickstream_download_links_request):
     """
-    Return the download links for eventing exports in a given scope.
-    :param eventing_links_request: EventingDownloadLinksRequest
+    Return the download links for clickstream exports in a given scope.
+    :param clickstream_download_links_request: ClickstreamDownloadLinksRequest
     """
     auth = oauth2.build_oauth2(app=RESEARCH_EXPORTS_APP).build_authorizer()
     response = requests.post(
-        url=EVENTING_API,
-        params=eventing_links_request.to_url_params(),
+        url=CLICKSTREAM_API,
+        params=clickstream_download_links_request.to_url_params(),
         auth=auth)
 
-    return response.json()
+    return response
+

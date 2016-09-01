@@ -19,12 +19,21 @@ If you do not have ``pip`` installed on your machine, please follow the
 installation instructions for your platform found at:
 https://pip.pypa.io/en/latest/installing.html#install-or-upgrade-pip
 
+Note: the tool requires ``docker`` to already be installed on your machine.
+Please see the docker
+`installation instructions <http://docs.docker.com/index.html>`_ for further
+information.
+
 Setup
 -----
 
 Authorize your application using `courseraoauth2client <https://github.com/coursera/courseraoauth2client>`_::
 
     courseraoauth2client config authorize --app manage-research-exports
+
+Check that your docker instance is running. Please see the docker
+`getting started guide <https://docs.docker.com/engine/getstarted/>`_ for your
+platform.
 
 Command Line Interface
 ----------------------
@@ -40,21 +49,21 @@ jobs
 
 request
 ~~~~~~~
-
-Create an data export job request and return the export job id.  There are two
-general workflows for creating data export requests.  To create a data export
+Create an data export job request and return the export job id. To create a data export
 requests for all available tables for a course::
 
-    courseraresearchexports jobs request tables --courseSlug $COURSE_SLUG --statementOfPurpose "testing data export"
+    courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
+        --statement_of_purpose "testing data export"
 
-Replace `$COURSE_SLUG` with your course slug (The course slug is the part after
-`/learn` in the url. For `https://www.coursera.org/learn/machine-learning`,
+Replace ``$COURSE_SLUG`` with your course slug (The course slug is the part after
+``/learn`` in the url. For ``https://www.coursera.org/learn/machine-learning``,
 the slug is `machine-learning`).
 
 If a more limited set of data is required, you can specify which schemas are
 included with the export.  (e.g. for the demographics tables)::
 
-    courseraresearchexports jobs request tables --courseSlug $COURSE_SLUG --schemaNames demographics --statementOfPurpose "testing data export"
+    courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
+        --schema_names demographics --statement_of_purpose "testing data export"
 
 For more information on the available tables/schemas, please refer to the
 `Coursera Data Exports Guide <https://coursera.gitbooks.io/data-exports/content/introduction/programmatic_access.html>`_.
@@ -62,32 +71,68 @@ For more information on the available tables/schemas, please refer to the
 If you are a data coordinator, you can request that user ids are linked between
 domains of the data export::
 
-    courseraresearchexports jobs request tables --courseSlug $COURSE_SLUG --statementOfPurpose "testing data export" --anonymityLevel HASHED_IDS_NO_PII
+    courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
+        --statement_of_purpose "testing data export" \
+        --anonymity_level HASHED_IDS_NO_PII
 
-Data coordinators can also request clickstream (eventing) exports::
+Data coordinators can also request clickstream exports::
 
-    courseraresearchexports jobs request eventing --courseSlug $COURSE_SLUG --interval 2016-09-01 2016-09-02 --anonymityLevel HASHED_IDS_NO_PII --statementOfPurpose "testing data export"
+    courseraresearchexports jobs request clickstream --course_slug $COURSE_SLUG \
+        --interval 2016-09-01 2016-09-02 --anonymity_level HASHED_IDS_NO_PII \
+        --statementOfPurpose "testing data export"
 
 getAll
 ~~~~~~
-
 Lists the details and status of all data export requests that you have made::
 
-    courseraresearchexports jobs getAll
+    courseraresearchexports jobs get_all
 
 get
 ~~~
+Retrieve the details and status of an export request::
 
-Retrieve the details and status of an export job::
-
-    courseraresearchexports jobs get $EXPORT_JOB_ID
+    courseraresearchexports jobs get $EXPORT_REQUEST_ID
 
 containers
 ^^^^^^^^^^
 
-Usage
------
+create
+~~~~~~
+Creates a docker container using the postgres image and loads export data
+into a postgres database on the container.  To create a docker container
+from an export, first ``request`` an export using the ``jobs`` command.  Then,
+using the ``$EXPORT_REQUEST_ID``, create a docker container with::
 
+    courseraresearchexports containers create $EXPORT_REQUEST_ID
+
+This will download the data export and load all the data into the database
+present on the container, so this may take some time depending on the size of
+your export. After creation use the ``list`` command to check the status of the
+container and view the address and port to connect to the database.
+
+list
+~~~~
+Lists the details of all the containers created by ``courseraresearchexports``::
+
+    courserareserachexports containers list
+
+start
+~~~~~
+Start a container::
+
+    courseraresearchexports containers start $EXPORT_REQUEST_ID
+
+stop
+~~~~
+Stop a container::
+
+    courseraresearchexports containers stop $EXPORT_REQUEST_ID
+
+remove
+~~~~~~
+Remove a container::
+
+    courseraresearchexports containers remove $EXPORT_REQUEST_ID
 
 Bugs / Issues / Feature Requests
 --------------------------------
