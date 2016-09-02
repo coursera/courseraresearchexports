@@ -16,12 +16,10 @@ To install this sdk, simply execute::
 
 `pip <https://pip.pypa.io/en/latest/index.html>`_ is a python package manager.
 If you do not have ``pip`` installed on your machine, please follow the
-installation instructions for your platform found at:
-https://pip.pypa.io/en/latest/installing.html#install-or-upgrade-pip
+`installation instructions <https://pip.pypa.io/en/latest/installing.html#install-or-upgrade-pip>`_ for your platform.
 
 Note: the ``containers`` subcommand requires ``docker`` to already be installed
- on your machine. Please see the docker
-`installation instructions <http://docs.docker.com/index.html>`_ for platform
+on your machine. Please see the `docker installation instructions <http://docs.docker.com/index.html>`_ for platform
 specific information.
 
 Setup
@@ -29,16 +27,16 @@ Setup
 
 Authorize your application using `courseraoauth2client <https://github.com/coursera/courseraoauth2client>`_::
 
-    courseraoauth2client config authorize --app manage-research-exports
+    courseraoauth2client config authorize --app manage_research_exports
 
 To use the ``containers`` functionality, a docker instance must be running.
 Please see the docker `getting started guide <https://docs.docker.com/engine/getstarted/>`_
-for your platform.
+for installation instructions for your platform.
 
 Command Line Interface
 ----------------------
 
-The project includes a command line tool. Simply run::
+The project includes a command line tool. Run::
 
     courseraresearchexports -h
 
@@ -49,8 +47,8 @@ jobs
 
 request
 ~~~~~~~
-Create an data export job request and return the export job id. To create a data export
-requests for all available tables for a course::
+Create an data export job request and return the export request id. To create a
+data export requests for all available tables for a course::
 
     courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
         --purpose "testing data export"
@@ -60,10 +58,10 @@ Replace ``$COURSE_SLUG`` with your course slug (The course slug is the part afte
 the slug is `machine-learning`).
 
 If a more limited set of data is required, you can specify which schemas are
-included with the export.  (e.g. for the demographics tables)::
+included with the export. (e.g. for the demographics tables)::
 
     courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
-        --schema_names demographics --purpose "testing data export"
+        --schemas demographics --purpose "testing data export"
 
 For more information on the available tables/schemas, please refer to the
 `Coursera Data Exports Guide <https://coursera.gitbooks.io/data-exports/content/introduction/programmatic_access.html>`_.
@@ -111,8 +109,13 @@ your export.  To create a docker container with an already downloaded export
     courseraresearchexports containers create --export_data_folder /path/to/data_export/
 
 After creation use the ``list`` command to check the status of the
-container and view the address and port to connect to the database. For
-example, if you have ``psql`` installed, you can connect with::
+container and view the container name, database name, address and port to
+connect to the database. Using docker, you can connect to the database by
+running::
+
+    docker run -it --rm --link $CONTAINER_NAME postgres:9.5 psql -h $CONTAINER_NAME -d $DATABASE_NAME -U postgres
+
+If you have ``psql`` installed, you can connect with::
 
     psql -p $HOST_PORT -h $HOST_IP -d $DATABASE_NAME -U postgres
 
