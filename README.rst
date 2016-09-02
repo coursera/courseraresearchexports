@@ -5,12 +5,14 @@ courseraresearchexports
     :target: https://travis-ci.org/coursera/courseraresearchexports
 
 This project is a library consisting of a command line interface and a client
-for interacting with Coursera's research exports.
+for interacting with Coursera's research exports. Up to date documentation
+of the data provided by Coursera for research purposes is available on gitbooks
+, `Coursera Data Exports Guide <https://coursera.gitbooks.io/data-exports/content/introduction/programmatic_access.html>`_.
 
 Installation
 ------------
 
-To install this sdk, simply execute::
+To install this package, execute::
 
     sudo pip install courseraresearchexports
 
@@ -40,14 +42,20 @@ The project includes a command line tool. Run::
 
     courseraresearchexports -h
 
-for a complete list of features, flags, and documentation.
+for a complete list of features, flags, and documentation.  Similarly,
+documentation for the subcommands listed below is also available (e.g. for
+``jobs``) by running::
+
+    courseraresearchexports jobs -h
 
 jobs
 ^^^^
+Submit a research export request or retrieve the status of pending and
+completed export jobs.
 
 request
 ~~~~~~~
-Create an data export job request and return the export request id. To create a
+Creates an data export job request and return the export request id. To create a
 data export requests for all available tables for a course::
 
     courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
@@ -89,6 +97,21 @@ Retrieve the details and status of an export request::
 
     courseraresearchexports jobs get $EXPORT_REQUEST_ID
 
+download
+~~~~~~~~
+Download an completed ``request tables`` export to your local destination::
+
+    courseraresearchexports jobs download $EXPORT_REQUEST_ID
+
+clickstream_download_links
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Due to the size of clickstream exports, we persist download links for completed
+clickstream export requests on Amazon S3. The clickstream data for each day is
+saved into a separate file and download links to these files can be retrieved
+by running::
+
+    courseraresearchexports jobs clickstream_download_links --course_slug $COURSE_SLUG
+
 containers
 ^^^^^^^^^^
 
@@ -119,7 +142,7 @@ If you have ``psql`` installed, you can connect with::
 
     psql -p $HOST_PORT -h $HOST_IP -d $DATABASE_NAME -U postgres
 
-with the parameters provided by ``list``
+with the parameters provided by ``list``.
 
 list
 ~~~~

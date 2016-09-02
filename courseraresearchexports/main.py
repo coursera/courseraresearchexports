@@ -20,11 +20,12 @@ Coursera's tools for interacting with research data exports.
 You may install it from source, or via pip.
 """
 
-from courseraresearchexports import commands
-from courseraresearchexports import utils
 import argparse
 import logging
 import sys
+
+from courseraresearchexports import commands
+from courseraresearchexports import utils
 
 
 def build_parser():
