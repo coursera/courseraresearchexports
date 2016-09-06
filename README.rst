@@ -125,8 +125,8 @@ using the ``$EXPORT_REQUEST_ID``, create a docker container with::
     courseraresearchexports containers create --export_request_id $EXPORT_REQUEST_ID
 
 This will download the data export and load all the data into the database
-present on the container, so this may take some time depending on the size of
-your export.  To create a docker container with an already downloaded export
+running on the container. This may take some time depending on the size of
+your export. To create a docker container with an already downloaded export
 (please decompress the archive first)::
 
     courseraresearchexports containers create --export_data_folder /path/to/data_export/

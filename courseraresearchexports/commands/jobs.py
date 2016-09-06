@@ -191,7 +191,7 @@ def parser(subparsers):
 
     parser_get.add_argument(
         'id',
-        help='Export job ID')
+        help='Export request ID')
 
     parser_download = jobs_subparsers.add_parser(
         'download',
