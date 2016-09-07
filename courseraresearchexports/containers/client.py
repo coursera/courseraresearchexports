@@ -25,8 +25,9 @@ import shutil
 import time
 
 from courseraresearchexports import exports
-from courseraresearchexports.containers import utils
 from courseraresearchexports.models.ContainerInfo import ContainerInfo
+from courseraresearchexports.utils import container_utils as utils
+from courseraresearchexports.utils import export_utils
 
 
 COURSERA_DOCKER_LABEL = 'courseraResearchExport'
@@ -105,7 +106,7 @@ def initialize(container_name_or_id, docker_client):
 
             logging.debug('Polling data for entrypoint initialization...')
             if not utils.is_container_running(container_name_or_id,
-                                              docker_client):
+                                                        docker_client):
                 raise RuntimeError('Container initialization failed.')
 
             time.sleep(10)
@@ -203,7 +204,7 @@ def create_from_export_request_id(export_request_id, docker_client,
 
     logging.info('Downloading export {}'.format(export_request_id))
     export_archive = export_request.download(dest=COURSERA_LOCAL_FOLDER)
-    export_data_folder = exports.utils.extract_export_archive(
+    export_data_folder = export_utils.extract_export_archive(
             export_archive,
             dest=os.path.join(COURSERA_LOCAL_FOLDER, export_request_id),
             delete_archive=True)

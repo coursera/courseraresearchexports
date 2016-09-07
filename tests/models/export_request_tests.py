@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM,\
-    EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES, EXPORT_TYPE_TABLES
+from courseraresearchexports.constants.api_constants import EXPORT_TYPE_TABLES, \
+    EXPORT_TYPE_CLICKSTREAM, EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES
 from courseraresearchexports.models.ExportRequest import ExportRequest
 from courseraresearchexports.models.ExportRequestWithMetadata import \
     ExportRequestWithMetadata

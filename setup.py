@@ -36,7 +36,8 @@ setup(
         'docker-py>=1.2.3',
         'tqdm>=4.8.4',
         'tabulate>=0.7.5',
-        'python-dateutil'
+        'python-dateutil',
+        'SQLAlchemy'
     ],
     test_suite='nose.collector',
     tests_require=['nose', 'nose-cover3'],

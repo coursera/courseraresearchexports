@@ -16,7 +16,7 @@
 
 import logging
 
-from courseraresearchexports.exports import utils
+from courseraresearchexports.utils import export_utils as utils
 
 
 class ClickstreamDownloadLinksRequest:

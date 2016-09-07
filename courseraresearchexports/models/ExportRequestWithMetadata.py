@@ -23,8 +23,8 @@ import time
 from tqdm import tqdm
 import requests
 
-from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM,\
-    EXPORT_TYPE_TABLES
+from courseraresearchexports.constants.api_constants import \
+    EXPORT_TYPE_TABLES, EXPORT_TYPE_CLICKSTREAM
 from courseraresearchexports.models.ExportRequest import ExportRequest
 
 

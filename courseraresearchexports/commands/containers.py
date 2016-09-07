@@ -14,11 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tabulate import tabulate
 import logging
 
+from tabulate import tabulate
+
 from courseraresearchexports.containers import client
-from courseraresearchexports.containers import utils
+from courseraresearchexports.utils import container_utils as utils
 
 
 def create_container(args):

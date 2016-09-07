@@ -14,22 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 RESEARCH_EXPORTS_APP = 'manage_research_exports'
 RESEARCH_EXPORTS_API = 'https://www.coursera.org/api/onDemandExports.v2/'
 COURSE_API = 'https://www.coursera.org/api/onDemandCourses.v1/'
 PARTNER_API = 'https://www.coursera.org/api/partners.v1/'
 CLICKSTREAM_API = 'https://www.coursera.org/api/clickstreamExportsDownload.v1/'
-
 ANONYMITY_LEVEL_COORDINATOR = 'HASHED_IDS_NO_PII'
 ANONYMITY_LEVEL_ISOLATED = 'HASHED_IDS_WITH_ISOLATED_UGC_NO_PII'
 ANONYMITY_LEVELS = [ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED]
-
 EXPORT_TYPE_TABLES = 'RESEARCH_WITH_SCHEMAS'
 EXPORT_TYPE_CLICKSTREAM = 'RESEARCH_EVENTING'
 EXPORT_TYPE_GRADEBOOK = 'GRADEBOOK'
 EXPORT_TYPES = [EXPORT_TYPE_TABLES, EXPORT_TYPE_CLICKSTREAM,
                 EXPORT_TYPE_GRADEBOOK]
-
 SCHEMA_NAMES = [
     'demographics',
     'users',
