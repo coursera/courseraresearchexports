@@ -27,9 +27,11 @@ specific information.
 autocomplete
 ^^^^^^^^^^^^
 
-To enable tab autocomplete, please install `argcomplete <https://github.com/kislyuk/argcomplete>`_ using ``pip install autocomplete``.
-See the argcomplete documentation for enable global autocomplete for your shell.
+To enable tab autocomplete, please install `argcomplete <https://github.com/kislyuk/argcomplete>`_ using
+``pip install autocomplete`` and execute ``activate-global-python-argcomplete``. Open a new shell and
+press tab for autocomplete functionality.
 
+See the argcomplete documentation for more details.
 
 Setup
 -----
