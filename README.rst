@@ -24,6 +24,14 @@ Note: the ``containers`` subcommand requires ``docker`` to already be installed
 on your machine. Please see the `docker installation instructions <http://docs.docker.com/index.html>`_ for platform
 specific information.
 
+autocomplete
+^^^^^^^^^^^^
+
+To enable tab autocomplete, please install `argcomplete <https://github.com/kislyuk/argcomplete>`_ using ``pip install autocomplete``.
+Then adding the line ``eval "$(register-python-argcomplete dataduct)"`` to enable autocomplete for bash.
+See the argcomplete documentation for enable autocomplete for zsh.
+
+
 Setup
 -----
 
