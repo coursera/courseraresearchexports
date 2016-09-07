@@ -14,7 +14,7 @@ Installation
 
 To install this package, execute::
 
-    sudo pip install courseraresearchexports
+    pip install courseraresearchexports
 
 `pip <https://pip.pypa.io/en/latest/index.html>`_ is a python package manager.
 If you do not have ``pip`` installed on your machine, please follow the
@@ -28,8 +28,7 @@ autocomplete
 ^^^^^^^^^^^^
 
 To enable tab autocomplete, please install `argcomplete <https://github.com/kislyuk/argcomplete>`_ using ``pip install autocomplete``.
-Then adding the line ``eval "$(register-python-argcomplete dataduct)"`` to enable autocomplete for bash.
-See the argcomplete documentation for enable autocomplete for zsh.
+See the argcomplete documentation for enable global autocomplete for your shell.
 
 
 Setup
