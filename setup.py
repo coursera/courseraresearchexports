@@ -29,7 +29,9 @@ setup(
     packages=['courseraresearchexports', 'courseraresearchexports.commands',
               'courseraresearchexports.exports',
               'courseraresearchexports.containers',
-              'courseraresearchexports.models'],
+              'courseraresearchexports.models',
+              'courseraresearchexports.db'],
+    package_data={'courseraresearchexports': ['sql/*.sql']},
     install_requires=[
         'courseraoauth2client>=0.0.1',
         'requests>=2.7.0',

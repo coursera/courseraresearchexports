@@ -22,23 +22,43 @@ import courseraresearchexports.utils.container_utils as container_utils
 
 
 def list_tables(args):
+    """
+    List all of the tables present in a dockerized database.
+    :param args:
+    :return:
+    """
     d = container_utils.docker_client(args.docker_url, args.timeout)
     tables = db.get_table_names(args.container_name_or_id, docker_client=d)
     logging.info('\n' + tabulate([[table] for table in tables]))
 
 
 def list_views(args):
+    """
+    List all of the views present in a dockerized database.
+    :param args:
+    :return:
+    """
     d = container_utils.docker_client(args.docker_url, args.timeout)
     tables = db.get_view_names(args.container_name_or_id, docker_client=d)
     logging.info('\n' + tabulate([[table] for table in tables]))
 
 
 def create_view(args):
+    """
+    Create a view from a sql query.
+    :param args:
+    :return:
+    """
     d = container_utils.docker_client(args.docker_url, args.timeout)
-    db.create_view(args.container_name_or_id, args.sql_file, args.partner_short_name, d)
+    db.create_view(args.container_name_or_id, args.view_name, args.partner_short_name, d)
 
 
 def unload_relation(args):
+    """
+    Unload a table or view to a CSV file.
+    :param args:
+    :return:
+    """
     d = container_utils.docker_client(args.docker_url, args.timeout)
     db.unload_relation(args.container_name_or_id, args.dest, args.relation, d)
 
@@ -49,7 +69,7 @@ def parser(subparsers):
     # create the parser for the version subcommand.
     parser_db= subparsers.add_parser(
         'db',
-        help='Stuff with DB',
+        help='Tools for interacting with dockerized database',
         parents=[container_utils.docker_client_arg_parser()])
 
     parser_db.add_argument(
@@ -74,14 +94,12 @@ def parser(subparsers):
     parser_create_view.set_defaults(func=create_view)
 
     parser_create_view.add_argument(
-        '--sql_file',
-        help='Name of sql file containing select statement to create view.'
-    )
+        '--view_name',
+        help='Name of view')
 
     parser_create_view.add_argument(
         '--partner_short_name',
-        help='Your partner short name.'
-    )
+        help='Your partner short name.')
 
     parser_unload = db_subparsers.add_parser(
         'unload_to_csv',
@@ -90,12 +108,10 @@ def parser(subparsers):
 
     parser_unload.add_argument(
         '--dest',
-        help='CSV file to create.'
-    )
+        help='Destination folder.')
 
     parser_unload.add_argument(
         '--relation',
-        help='Table or view to export.'
-    )
+        help='Table or view to export.')
 
     return parser_db

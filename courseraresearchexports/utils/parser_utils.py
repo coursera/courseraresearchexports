@@ -33,8 +33,10 @@ def add_logging_parser(main_parser):
 
 def set_logging_level(args):
     """Computes and sets the logging level from the parsed arguments."""
+    logging.basicConfig()
     root_logger = logging.getLogger()
     level = logging.INFO
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
     logging.getLogger('requests.packages.urllib3').setLevel(logging.WARNING)
     if "verbose" in args and args.verbose is not None:
         logging.getLogger('requests.packages.urllib3').setLevel(0)  # Unset
@@ -46,6 +48,7 @@ def set_logging_level(args):
             logging.critical("verbose is an unexpected value. {} exiting."
                              .format(args.verbose))
             sys.exit(2)
+        logging.getLogger('sqlalchemy.engine').setLevel(level)
     elif "quiet" in args and args.quiet is not None:
         if args.quiet > 1:
             level = logging.ERROR

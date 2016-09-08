@@ -43,8 +43,7 @@ def list_all(docker_client):
     :param docker_client:
     :return containers_info: [ContainerInfo]
     """
-    return [ContainerInfo.from_container_dict(
-            docker_client.inspect_container(container))
+    return [ContainerInfo.from_container(container['Id'], docker_client)
             for container in docker_client.containers(
             all=True, filters={'label': COURSERA_DOCKER_LABEL})]
 
