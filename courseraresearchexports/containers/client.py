@@ -105,7 +105,7 @@ def initialize(container_name_or_id, docker_client):
 
             logging.debug('Polling data for entrypoint initialization...')
             if not utils.is_container_running(container_name_or_id,
-                                                        docker_client):
+                                              docker_client):
                 raise RuntimeError('Container initialization failed.')
 
             time.sleep(10)

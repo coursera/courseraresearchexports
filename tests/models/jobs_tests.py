@@ -27,7 +27,7 @@ fake_course_id = 'fake_course_id'
 fake_course_slug = 'fake_course_slug'
 
 
-@patch('courseraresearchexports.commands.jobs.exports.api.get_all')
+@patch('courseraresearchexports.commands.jobs.api.get_all')
 def test_get_all(api_get_all):
     api_get_all.return_value = []
 
@@ -36,9 +36,8 @@ def test_get_all(api_get_all):
     api_get_all.assert_any_call()
 
 
-@patch('courseraresearchexports.commands.jobs.exports.utils.'
-       'lookup_course_slug_by_id')
-@patch('courseraresearchexports.commands.jobs.exports.api.get')
+@patch('courseraresearchexports.utils.export_utils.lookup_course_slug_by_id')
+@patch('courseraresearchexports.commands.jobs.api.get')
 def test_get(api_get, lookup_course_slug_by_id):
     lookup_course_slug_by_id.return_value = fake_course_slug
     api_get.return_value = [
@@ -52,7 +51,7 @@ def test_get(api_get, lookup_course_slug_by_id):
     api_get.assert_called_with(fake_course_id)
 
 
-@patch('courseraresearchexports.commands.jobs.exports.api.post')
+@patch('courseraresearchexports.commands.jobs.api.post')
 def test_request(api_post):
     api_post.return_value = [
         ExportRequestWithMetadata(course_id=fake_course_id)
@@ -74,7 +73,7 @@ def test_request(api_post):
     assert export_request.course_id == fake_course_id
 
 
-@patch('courseraresearchexports.commands.jobs.exports.api.get')
+@patch('courseraresearchexports.commands.jobs.api.get')
 def test_download(api_get):
     export_request_mock = MagicMock(spec=ExportRequestWithMetadata)
     api_get.return_value = [export_request_mock]

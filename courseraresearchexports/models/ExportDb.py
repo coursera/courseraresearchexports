@@ -85,9 +85,11 @@ class ExportDb:
         Unloads to a csv file given a query.
         :param query:
         :param output_filename:
-        :return:
+        :return rowcount:
         """
         result = self.engine.execute(query)
+
+        rowcount = result.rowcount
 
         with open(output_filename, 'wb') as csv_file:
             csv_obj = csv.writer(csv_file)
@@ -98,15 +100,18 @@ class ExportDb:
                                for col in row]
                 csv_obj.writerow(encoded_row)
 
+        return rowcount
+
     def unload_relation(self, relation, output_filename):
         """
         Unload a table or view.
         :param relation:
         :param output_filename:
-        :return:
+        :return rowcount:
         """
         query = 'SELECT * FROM {relation};'.format(relation=relation)
-        self.unload(query, output_filename)
+        rowcount = self.unload(query, output_filename)
+        return rowcount
 
     @property
     def tables(self):

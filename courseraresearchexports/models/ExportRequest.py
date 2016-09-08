@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from courseraresearchexports.constants.api_constants import \
-    ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED, EXPORT_TYPE_TABLES, \
+    ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED, EXPORT_TYPE_TABLES,\
     EXPORT_TYPE_CLICKSTREAM, EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES
 from courseraresearchexports.utils import export_utils as utils
 

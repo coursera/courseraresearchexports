@@ -50,7 +50,17 @@ def create_view(args):
     :return:
     """
     d = container_utils.docker_client(args.docker_url, args.timeout)
-    db.create_view(args.container_name_or_id, args.view_name, args.partner_short_name, d)
+
+    if args.view_name:
+        created_view = db.create_registered_view(
+            args.container_name_or_id, args.view_name,
+            args.partner_short_name, d)
+    elif args.sql_file:
+        created_view = db.create_view_from_file(
+            args.container_name_or_id, args.sql_file,
+            args.partner_short_name, d)
+
+    logging.info('Created view {}'.format(created_view))
 
 
 def unload_relation(args):
@@ -60,21 +70,20 @@ def unload_relation(args):
     :return:
     """
     d = container_utils.docker_client(args.docker_url, args.timeout)
-    db.unload_relation(args.container_name_or_id, args.dest, args.relation, d)
+    rowcount = db.unload_relation(args.container_name_or_id, args.dest,
+                                  args.relation, d)
+
+    logging.info('Unloaded {} rows'.format(rowcount))
 
 
 def parser(subparsers):
     """Build an argparse argument parser to parse the command line."""
 
     # create the parser for the version subcommand.
-    parser_db= subparsers.add_parser(
+    parser_db = subparsers.add_parser(
         'db',
         help='Tools for interacting with dockerized database',
         parents=[container_utils.docker_client_arg_parser()])
-
-    parser_db.add_argument(
-        'container_name_or_id',
-        help='Name or id of container container database.')
 
     db_subparsers = parser_db.add_subparsers()
 
@@ -83,10 +92,18 @@ def parser(subparsers):
         help=list_tables.__doc__)
     parser_tables.set_defaults(func=list_tables)
 
+    parser_tables.add_argument(
+        'container_name_or_id',
+        help='Name or id of container container database.')
+
     parser_views = db_subparsers.add_parser(
         'list_views',
         help=list_views.__doc__)
     parser_views.set_defaults(func=list_views)
+
+    parser_views.add_argument(
+        'container_name_or_id',
+        help='Name or id of container container database.')
 
     parser_create_view = db_subparsers.add_parser(
         'create_view',
@@ -94,8 +111,17 @@ def parser(subparsers):
     parser_create_view.set_defaults(func=create_view)
 
     parser_create_view.add_argument(
+        'container_name_or_id',
+        help='Name or id of container container database.')
+
+    create_source_subparser = parser_create_view.add_mutually_exclusive_group(
+        required=True)
+    create_source_subparser.add_argument(
         '--view_name',
         help='Name of view')
+    create_source_subparser.add_argument(
+        '--sql_file',
+        help='SQL file with query.')
 
     parser_create_view.add_argument(
         '--partner_short_name',
@@ -105,6 +131,10 @@ def parser(subparsers):
         'unload_to_csv',
         help=unload_relation.__doc__)
     parser_unload.set_defaults(func=unload_relation)
+
+    parser_unload.add_argument(
+        'container_name_or_id',
+        help='Name or id of container container database.')
 
     parser_unload.add_argument(
         '--dest',
