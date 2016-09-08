@@ -24,8 +24,6 @@ import courseraresearchexports.utils.container_utils as container_utils
 def list_tables(args):
     """
     List all of the tables present in a dockerized database.
-    :param args:
-    :return:
     """
     d = container_utils.docker_client(args.docker_url, args.timeout)
     tables = db.get_table_names(args.container_name_or_id, docker_client=d)
@@ -35,8 +33,6 @@ def list_tables(args):
 def list_views(args):
     """
     List all of the views present in a dockerized database.
-    :param args:
-    :return:
     """
     d = container_utils.docker_client(args.docker_url, args.timeout)
     tables = db.get_view_names(args.container_name_or_id, docker_client=d)
@@ -46,8 +42,6 @@ def list_views(args):
 def create_view(args):
     """
     Create a view from a sql query.
-    :param args:
-    :return:
     """
     d = container_utils.docker_client(args.docker_url, args.timeout)
 
@@ -66,8 +60,6 @@ def create_view(args):
 def unload_relation(args):
     """
     Unload a table or view to a CSV file.
-    :param args:
-    :return:
     """
     d = container_utils.docker_client(args.docker_url, args.timeout)
     rowcount = db.unload_relation(args.container_name_or_id, args.dest,
