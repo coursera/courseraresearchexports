@@ -19,6 +19,7 @@ import json
 import argparse
 import logging
 
+
 from courseraresearchexports.exports import api
 from courseraresearchexports.constants import api_constants
 from courseraresearchexports.models.ClickstreamDownloadLinksRequest import \
@@ -89,6 +90,7 @@ def get(args):
         ['Scope Context:', export_request.scope_context],
         ['Scope Id:', export_request.scope_id],
         ['Scope Name:', export_request.scope_name],
+        ['User id Hashing: ', export_request.formatted_anonymity_level],
         ['Created:', export_request.created_at.strftime('%c')]]
 
     if export_request.schema_names:
@@ -113,14 +115,14 @@ def get_all(args):
     export_requests = api.get_all()
 
     export_requests_table = [['Created', 'Request Id', 'Status', 'Type',
-                              'Scope', 'Schemas']]
-    for export_request in sorted(export_requests, key=lambda x: x.created_at,
-                                 reverse=True):
+                              'User Id Hashing', 'Scope', 'Schemas']]
+    for export_request in sorted(export_requests, key=lambda x: x.created_at):
         export_requests_table.append([
             export_request.created_at.strftime('%Y-%m-%d %H:%M'),
             export_request.id,
             export_request.status,
             export_request.export_type_display,
+            export_request.formatted_anonymity_level,
             export_request.scope_id,
             export_request.schema_names_display])
 

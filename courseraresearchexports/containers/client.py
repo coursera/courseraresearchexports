@@ -197,9 +197,8 @@ def create_from_export_request_id(export_request_id, docker_client,
     export_request = exports.api.get(export_request_id)[0]
 
     if export_request.export_type != exports.constants.EXPORT_TYPE_TABLES:
-        logging.error('Sorry, container creation is only available with '
-                      'tables data exports.')
-        raise ValueError('Invalid Export Type.')
+        raise ValueError('Invalid Export Type. (Only tables exports supported.'
+                         'Given [{}])'.format(export_request.export_type))
 
     logging.info('Downloading export {}'.format(export_request_id))
     export_archive = export_request.download(dest=COURSERA_LOCAL_FOLDER)
