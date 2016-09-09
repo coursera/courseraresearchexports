@@ -19,9 +19,8 @@ import json
 import argparse
 import logging
 
-from courseraresearchexports import exports
-from courseraresearchexports.exports.constants import \
-    ANONYMITY_LEVEL_COORDINATOR
+from courseraresearchexports.exports import api
+from courseraresearchexports.constants import api_constants
 from courseraresearchexports.models.ClickstreamDownloadLinksRequest import \
     ClickstreamDownloadLinksRequest
 from courseraresearchexports.models.ExportRequest import ExportRequest
@@ -38,13 +37,13 @@ def request_clickstream(args):
         partner_id=args.partner_id,
         parter_short_name=args.partner_short_name,
         group_id=args.group_id,
-        anonymity_level=exports.constants.ANONYMITY_LEVEL_COORDINATOR,
+        anonymity_level=api_constants.ANONYMITY_LEVEL_COORDINATOR,
         statement_of_purpose=args.purpose,
-        export_type=exports.constants.EXPORT_TYPE_CLICKSTREAM,
+        export_type=api_constants.EXPORT_TYPE_CLICKSTREAM,
         interval=args.interval,
         ignore_existing=args.ignore_existing)
 
-    export_request_with_metadata = exports.api.post(export_request)[0]
+    export_request_with_metadata = api.post(export_request)[0]
 
     logging.info('Successfully created clickstream export request {id}.'
                  .format(id=export_request_with_metadata.id))
@@ -65,10 +64,10 @@ def request_tables(args):
         group_id=args.group_id,
         user_id_hashing=args.user_id_hashing,
         statement_of_purpose=args.purpose,
-        export_type=exports.constants.EXPORT_TYPE_TABLES,
+        export_type=api_constants.EXPORT_TYPE_TABLES,
         schema_names=args.schemas)
 
-    export_request_with_metadata = exports.api.post(export_request)[0]
+    export_request_with_metadata = api.post(export_request)[0]
 
     logging.info('Successfully created tables export request {id}.'
                  .format(id=export_request_with_metadata.id))
@@ -81,7 +80,7 @@ def get(args):
     """
     Get the details and status of a data export request using a job id.
     """
-    export_request = exports.api.get(args.id)[0]
+    export_request = api.get(args.id)[0]
 
     export_request_info = [
         ['Export Job Id:', export_request.id],
@@ -112,7 +111,7 @@ def get_all(args):
     """
     Get the details and status of your data export requests.
     """
-    export_requests = exports.api.get_all()
+    export_requests = api.get_all()
 
     export_requests_table = [['Created', 'Request Id', 'Status', 'Type',
                               'User Id Hashing', 'Scope', 'Schemas']]
@@ -134,7 +133,7 @@ def download(args):
     Download a data export job using a request id.
     """
     try:
-        export_request = exports.api.get(args.id)[0]
+        export_request = api.get(args.id)[0]
         export_request.download(args.dest)
 
     except Exception as err:
@@ -154,7 +153,7 @@ def get_clickstream_links(args):
         group_id=args.group_id,
         interval=args.interval)
 
-    clickstream_download_links = exports.api.get_clickstream_download_links(
+    clickstream_download_links = api.get_clickstream_download_links(
         clickstream_links_request)
 
     # TODO: add more descriptive information or option write to text file
@@ -293,12 +292,12 @@ def create_request_parser(subparsers):
 
     parser_tables.add_argument(
         '--schemas',
-        choices=exports.constants.SCHEMA_NAMES,
+        choices=api_constants.SCHEMA_NAMES,
         nargs='+',
-        default=exports.constants.SCHEMA_NAMES,
+        default=api_constants.SCHEMA_NAMES,
         help='Data schemas to export. Any combination of: {}. By default this '
         'will be all available schemas.'.format(
-            ', '.join(exports.constants.SCHEMA_NAMES)))
+            ', '.join(api_constants.SCHEMA_NAMES)))
 
     # clickstream subcommand
     parser_clickstream = request_subparsers.add_parser(

@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM,\
-    EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES, EXPORT_TYPE_TABLES
+from courseraresearchexports.constants.api_constants import SCHEMA_NAMES, \
+    EXPORT_TYPE_TABLES, EXPORT_TYPE_CLICKSTREAM, EXPORT_TYPE_GRADEBOOK
 from courseraresearchexports.models.ExportRequest import ExportRequest
 from courseraresearchexports.models.ExportRequestWithMetadata import \
     ExportRequestWithMetadata
@@ -55,7 +55,7 @@ def test_create_from_args():
     assert ExportRequest(course_id=fake_course_id) == export_request
 
 
-@patch('courseraresearchexports.exports.utils.lookup_course_id_by_slug')
+@patch('courseraresearchexports.utils.export_utils.lookup_course_id_by_slug')
 def test_course_id_inference(lookup_course_id_by_slug):
     lookup_course_id_by_slug.return_value = fake_course_id
     export_request = ExportRequest.from_args(course_slug=fake_course_slug)
@@ -63,7 +63,8 @@ def test_course_id_inference(lookup_course_id_by_slug):
     assert ExportRequest(course_id=fake_course_id) == export_request
 
 
-@patch('courseraresearchexports.exports.utils.lookup_partner_id_by_short_name')
+@patch('courseraresearchexports.utils.export_utils.'
+       'lookup_partner_id_by_short_name')
 def test_partner_id_inference(lookup_partner_id_by_short_name):
     lookup_partner_id_by_short_name.return_value = fake_partner_id
     export_request = ExportRequest.from_args(

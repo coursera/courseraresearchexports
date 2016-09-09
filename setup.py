@@ -29,7 +29,9 @@ setup(
     packages=['courseraresearchexports', 'courseraresearchexports.commands',
               'courseraresearchexports.exports',
               'courseraresearchexports.containers',
-              'courseraresearchexports.models'],
+              'courseraresearchexports.models',
+              'courseraresearchexports.db'],
+    package_data={'courseraresearchexports': ['sql/*.sql']},
     install_requires=[
         'argcomplete>=1.4.1',
         'courseraoauth2client>=0.0.1',
@@ -37,7 +39,8 @@ setup(
         'docker-py>=1.2.3',
         'tqdm>=4.8.4',
         'tabulate>=0.7.5',
-        'python-dateutil'
+        'python-dateutil>=2.5.3',
+        'SQLAlchemy>=1.0.15'
     ],
     test_suite='nose.collector',
     tests_require=['nose', 'nose-cover3'],
