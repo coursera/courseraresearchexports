@@ -14,7 +14,7 @@ Installation
 
 To install this package, execute::
 
-    sudo pip install courseraresearchexports
+    pip install courseraresearchexports
 
 `pip <https://pip.pypa.io/en/latest/index.html>`_ is a python package manager.
 If you do not have ``pip`` installed on your machine, please follow the
@@ -23,6 +23,15 @@ If you do not have ``pip`` installed on your machine, please follow the
 Note: the ``containers`` subcommand requires ``docker`` to already be installed
 on your machine. Please see the `docker installation instructions <http://docs.docker.com/index.html>`_ for platform
 specific information.
+
+autocomplete
+^^^^^^^^^^^^
+
+To enable tab autocomplete, please install `argcomplete <https://github.com/kislyuk/argcomplete>`_ using
+``pip install autocomplete`` and execute ``activate-global-python-argcomplete``. Open a new shell and
+press tab for autocomplete functionality.
+
+See the argcomplete documentation for more details.
 
 Setup
 -----

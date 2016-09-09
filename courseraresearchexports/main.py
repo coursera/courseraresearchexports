@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
 
 # Copyright 2016 Coursera
 #
@@ -20,6 +21,7 @@ Coursera's tools for interacting with research data exports.
 You may install it from source, or via pip.
 """
 
+import argcomplete
 import argparse
 import logging
 import sys
@@ -68,7 +70,11 @@ def main():
     Boots up the command line tool
     """
     logging.captureWarnings(True)
-    args = build_parser().parse_args()
+    parser = build_parser()
+
+    argcomplete.autocomplete(parser)
+
+    args = parser.parse_args()
     # Configure logging
     args.setup_logging(args)
     # Dispatch into the appropriate subcommand function.

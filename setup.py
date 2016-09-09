@@ -7,7 +7,7 @@ def readme():
 
 setup(
     name='courseraresearchexports',
-    version='0.0.2',
+    version='0.0.3',
     description='Command line tool for convenient access to '
     'Coursera Research Data Exports.',
     long_description=readme(),
@@ -31,6 +31,7 @@ setup(
               'courseraresearchexports.containers',
               'courseraresearchexports.models'],
     install_requires=[
+        'argcomplete>=1.4.1',
         'courseraoauth2client>=0.0.1',
         'requests>=2.7.0',
         'docker-py>=1.2.3',
