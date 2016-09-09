@@ -168,6 +168,15 @@ class ExportRequest:
         return self._anonymity_level
 
     @property
+    def formatted_anonymity_level(self):
+        if self.anonymity_level == ANONYMITY_LEVEL_COORDINATOR:
+            return 'Linked'
+        elif self.anonymity_level == ANONYMITY_LEVEL_ISOLATED:
+            return 'Isolated'
+        else:
+            return 'Unknown'
+
+    @property
     def statement_of_purpose(self):
         return self._statement_of_purpose
 
