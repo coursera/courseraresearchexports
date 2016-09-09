@@ -1,5 +1,5 @@
 __all__ = [
-    "api"
+    "db"
 ]
 
 from . import *  # noqa

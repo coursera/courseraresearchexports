@@ -25,8 +25,9 @@ import shutil
 import time
 
 from courseraresearchexports import exports
-from courseraresearchexports.containers import utils
 from courseraresearchexports.models.ContainerInfo import ContainerInfo
+from courseraresearchexports.utils import container_utils
+from courseraresearchexports.utils import export_utils
 
 
 COURSERA_DOCKER_LABEL = 'courseraResearchExport'
@@ -42,8 +43,7 @@ def list_all(docker_client):
     :param docker_client:
     :return containers_info: [ContainerInfo]
     """
-    return [ContainerInfo.from_container_dict(
-            docker_client.inspect_container(container))
+    return [ContainerInfo.from_container(container['Id'], docker_client)
             for container in docker_client.containers(
             all=True, filters={'label': COURSERA_DOCKER_LABEL})]
 
@@ -61,7 +61,7 @@ def start(container_name_or_id, docker_client):
                 container_name_or_id, tail=4):
 
             logging.debug('Polling container for database connection...')
-            if not utils.is_container_running(
+            if not container_utils.is_container_running(
                     container_name_or_id, docker_client):
                 raise RuntimeError('Container failed to start.')
 
@@ -104,8 +104,8 @@ def initialize(container_name_or_id, docker_client):
                 container_name_or_id, tail=20):
 
             logging.debug('Polling data for entrypoint initialization...')
-            if not utils.is_container_running(container_name_or_id,
-                                              docker_client):
+            if not container_utils.is_container_running(container_name_or_id,
+                                                        docker_client):
                 raise RuntimeError('Container initialization failed.')
 
             time.sleep(10)
@@ -155,7 +155,7 @@ def create_from_folder(export_data_folder, docker_client,
         host_config=docker_client.create_host_config(
             binds=['{}:/mnt/exportData:ro'.format(export_data_folder)],
             port_bindings={
-                5432: utils.get_next_available_port(list_all(
+                5432: container_utils.get_next_available_port(list_all(
                     docker_client))
             }))
 
@@ -172,7 +172,7 @@ def create_from_folder(export_data_folder, docker_client,
     docker_client.put_archive(
         container_id,  # using a named argument causes NullResource error
         path='/docker-entrypoint-initdb.d/',
-        data=utils.create_tar_archive(
+        data=container_utils.create_tar_archive(
             database_setup_script, name='init-user-db.sh'))
 
     logging.info('Created container with id: {}'.format(container_id))
@@ -202,7 +202,7 @@ def create_from_export_request_id(export_request_id, docker_client,
 
     logging.info('Downloading export {}'.format(export_request_id))
     export_archive = export_request.download(dest=COURSERA_LOCAL_FOLDER)
-    export_data_folder = exports.utils.extract_export_archive(
+    export_data_folder = export_utils.extract_export_archive(
             export_archive,
             dest=os.path.join(COURSERA_LOCAL_FOLDER, export_request_id),
             delete_archive=True)

@@ -19,11 +19,11 @@ Coursera's wrapper for data exports API.
 """
 
 import requests
-
 from courseraoauth2client import oauth2
-from courseraresearchexports.exports.constants import RESEARCH_EXPORTS_APP, \
-    RESEARCH_EXPORTS_API, CLICKSTREAM_API
-from courseraresearchexports.exports.utils import requests_response_to_model
+from courseraresearchexports.utils.export_utils import \
+    requests_response_to_model
+from courseraresearchexports.constants.api_constants import \
+    RESEARCH_EXPORTS_APP, RESEARCH_EXPORTS_API, CLICKSTREAM_API
 from courseraresearchexports.models.ExportRequestWithMetadata import \
     ExportRequestWithMetadata
 

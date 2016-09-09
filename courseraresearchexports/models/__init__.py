@@ -1,8 +1,9 @@
 __all__ = [
-    "ExportRequest",
     "ExportRequestWithMetadata",
+    "ExportRequest",
     "ClickstreamDownloadLinksRequest",
-    "ContainerInfo"
+    "ContainerInfo",
+    "ExportDb"
 ]
 
 from . import *  # noqa

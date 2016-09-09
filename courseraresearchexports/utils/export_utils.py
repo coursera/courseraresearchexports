@@ -20,7 +20,8 @@ import zipfile
 
 import requests
 
-from courseraresearchexports.exports.constants import COURSE_API, PARTNER_API
+from courseraresearchexports.constants.api_constants import COURSE_API, \
+    PARTNER_API
 
 
 def extract_export_archive(export_archive, dest, delete_archive=True):

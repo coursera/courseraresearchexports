@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from courseraresearchexports.exports import utils
-from courseraresearchexports.exports.constants import EXPORT_TYPE_CLICKSTREAM,\
-    EXPORT_TYPE_GRADEBOOK, EXPORT_TYPE_TABLES, SCHEMA_NAMES, \
-    ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED
+from courseraresearchexports.constants.api_constants import \
+    ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED, EXPORT_TYPE_TABLES,\
+    EXPORT_TYPE_CLICKSTREAM, EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES
+from courseraresearchexports.utils import export_utils as utils
 
 
 class ExportRequest:

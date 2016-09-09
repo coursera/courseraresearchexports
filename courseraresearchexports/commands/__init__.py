@@ -3,7 +3,8 @@
 __all__ = [
   "version",
   "jobs",
-  "containers"
+  "containers",
+  "db"
 ]
 
 from . import *  # noqa
