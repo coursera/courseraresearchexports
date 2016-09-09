@@ -19,8 +19,8 @@ import json
 import argparse
 import logging
 
-import courseraresearchexports.exports.api as api
-import courseraresearchexports.constants.api_constants as constants
+from courseraresearchexports.exports import api
+from courseraresearchexports.constants import api_constants
 from courseraresearchexports.models.ClickstreamDownloadLinksRequest import \
     ClickstreamDownloadLinksRequest
 from courseraresearchexports.models.ExportRequest import ExportRequest
@@ -37,9 +37,9 @@ def request_clickstream(args):
         partner_id=args.partner_id,
         parter_short_name=args.partner_short_name,
         group_id=args.group_id,
-        anonymity_level=constants.ANONYMITY_LEVEL_COORDINATOR,
+        anonymity_level=api_constants.ANONYMITY_LEVEL_COORDINATOR,
         statement_of_purpose=args.purpose,
-        export_type=constants.EXPORT_TYPE_CLICKSTREAM,
+        export_type=api_constants.EXPORT_TYPE_CLICKSTREAM,
         interval=args.interval,
         ignore_existing=args.ignore_existing)
 
@@ -64,7 +64,7 @@ def request_tables(args):
         group_id=args.group_id,
         user_id_hashing=args.user_id_hashing,
         statement_of_purpose=args.purpose,
-        export_type=constants.EXPORT_TYPE_TABLES,
+        export_type=api_constants.EXPORT_TYPE_TABLES,
         schema_names=args.schemas)
 
     export_request_with_metadata = api.post(export_request)[0]
@@ -291,12 +291,12 @@ def create_request_parser(subparsers):
 
     parser_tables.add_argument(
         '--schemas',
-        choices=constants.SCHEMA_NAMES,
+        choices=api_constants.SCHEMA_NAMES,
         nargs='+',
-        default=constants.SCHEMA_NAMES,
+        default=api_constants.SCHEMA_NAMES,
         help='Data schemas to export. Any combination of: {}. By default this '
         'will be all available schemas.'.format(
-            ', '.join(constants.SCHEMA_NAMES)))
+            ', '.join(api_constants.SCHEMA_NAMES)))
 
     # clickstream subcommand
     parser_clickstream = request_subparsers.add_parser(

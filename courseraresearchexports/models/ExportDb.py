@@ -24,8 +24,7 @@ from courseraresearchexports.models.ContainerInfo import ContainerInfo
 
 class ExportDb:
     """
-    Interface to SQLAlchemy for interacting with the a database
-    on a docker container
+    Interface for accessing a database within a docker container
     """
     def __init__(self, host_ip=None, host_port=None, db=None, **kwargs):
 
@@ -53,15 +52,6 @@ class ExportDb:
         """
         container_info = ContainerInfo.from_container(container_name_or_id,
                                                       docker_client)
-        return cls.from_container_info(container_info)
-
-    @classmethod
-    def from_container_info(cls, container_info):
-        """
-        Create an ExportDb object from the information about a container
-        :param container_info: ContainerInfo
-        :return export_db: ExportDb
-        """
         return cls(host_ip=container_info.host_ip,
                    host_port=container_info.host_port,
                    db=container_info.database_name)

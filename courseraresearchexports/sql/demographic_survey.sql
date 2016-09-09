@@ -1,8 +1,24 @@
-/*
-demographic_survey
-This query partially denormalizes the demographics tables to create aggregate
-information about the users in the present data export.
-*/
+--demographic_survey
+--This query partially denormalizes the demographics tables to create aggregate
+--information about the users in the present data export.
+--
+--Columns
+--coursera_user_id
+--demographic_survey_submission_dt
+--demographic_survey_gender
+--demographic_survey_age
+--demographic_survey_country_cd_of_birth
+--demographic_survey_us_postal_code
+--demographic_survey_spanish_hispanic_or_latino_descent
+--demographic_survey_race
+--demographic_survey_highest_level_of_schooling
+--demographic_survey_currently_enrolled_in_an_educational_program
+--demographic_survey_level_of_current_educational_program
+--demographic_survey_subject_area_of_degree
+--demographic_survey_current_employment_status
+--demographic_survey_area_of_industry_currently_employed_in
+--demographic_survey_english_proficiency
+--demographic_survey_other_languages_spoken
 
 SELECT
     a.[partner_short_name]_user_id

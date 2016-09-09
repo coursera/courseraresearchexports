@@ -173,7 +173,7 @@ db
 
 create_view
 ~~~~~~~~~~~
-Create a view in the dockerized database. We are planning to include commonly
+Create a view in the postgres database. We are planning to include commonly
 used denormalized views as part of this project. To create one of these views
 (i.e. for the demographic_survey view)::
 

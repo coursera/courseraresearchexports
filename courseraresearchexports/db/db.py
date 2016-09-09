@@ -65,7 +65,7 @@ def unload_relation(container_name_or_id, dest, relation, docker_client):
 
 
 def create_registered_view(container_name_or_id, view_name, partner_short_name,
-                docker_client):
+                           docker_client):
     """
     Create a prepackaged view
     :param container_name_or_id:
@@ -85,8 +85,9 @@ def create_registered_view(container_name_or_id, view_name, partner_short_name,
 
     return view_name
 
+
 def create_view_from_file(container_name_or_id, sql_file, partner_short_name,
-                docker_client):
+                          docker_client):
     """
     Create a view from a sql file.
     :param container_name_or_id:
