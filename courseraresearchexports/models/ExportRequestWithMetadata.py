@@ -223,7 +223,7 @@ class ExportRequestWithMetadata(ExportRequest):
                 'using `courseraresearchexports jobs eventing_download_links`.'
                 ' Please refer to the Coursera Export Guide for details'
                 'https://coursera.gitbooks.io/data-exports/content/'
-                'introduction/programmatic_access.html')
+                'introduction/introduction/commandline_access_md.html')
             raise ValueError(
                 'Require export_type = {}'.format(EXPORT_TYPE_TABLES))
         elif not self._download_link:
