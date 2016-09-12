@@ -1,5 +1,6 @@
 __all__ = [
-    "api"
+    "api",
+    "utils"
 ]
 
 from . import *  # noqa

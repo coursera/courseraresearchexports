@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +14,34 @@
 
 import argparse
 from io import BytesIO
+import logging
+import os
 import tarfile
 import time
+import zipfile
 
 from docker import Client
+
+
+def extract_export_archive(export_archive, dest, delete_archive=True):
+    """
+    Extracts a compressed folder
+    :param export_archive:
+    :param dest:
+    :param delete_archive: delete the archive after extracting
+    :return dest:
+    """
+    try:
+        logging.debug('Extracting archive to {}'.format(dest))
+        with zipfile.ZipFile(export_archive, 'r') as z:
+            z.extractall(dest)
+        if delete_archive:
+            os.remove(export_archive)
+        return dest
+    except:
+        logging.error('Error in extracting export archive {} to {}'.format(
+            export_archive, dest))
+        raise
 
 
 def create_tar_archive(str, name='init-user-db.sh'):

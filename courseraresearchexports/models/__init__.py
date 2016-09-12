@@ -3,7 +3,8 @@ __all__ = [
     "ExportRequest",
     "ClickstreamDownloadLinksRequest",
     "ContainerInfo",
-    "ExportDb"
+    "ExportDb",
+    "utils"
 ]
 
 from . import *  # noqa

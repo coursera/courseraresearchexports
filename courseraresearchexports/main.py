@@ -27,7 +27,7 @@ import logging
 import sys
 
 from courseraresearchexports import commands
-from courseraresearchexports.utils import parser_utils
+from courseraresearchexports.commands import utils
 
 
 def build_parser():
@@ -45,7 +45,7 @@ def build_parser():
         would like to contribute to this tool's development, check us out at:
         https://github.com/coursera/courseraresarchexports""")
 
-    parser_utils.add_logging_parser(parser)
+    utils.add_logging_parser(parser)
 
     # We have a number of subcommands. These subcommands have their own
     # subparsers. Each subcommand should set a default value for the 'func'
