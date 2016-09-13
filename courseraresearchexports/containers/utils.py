@@ -23,9 +23,9 @@ import zipfile
 from docker import Client
 
 
-def extract_export_archive(export_archive, dest, delete_archive=True):
+def extract_zip_archive(archive, dest, delete_archive=True):
     """
-    Extracts a compressed folder
+    Extracts a zip archive to `dest`
     :param export_archive:
     :param dest:
     :param delete_archive: delete the archive after extracting
@@ -33,18 +33,19 @@ def extract_export_archive(export_archive, dest, delete_archive=True):
     """
     try:
         logging.debug('Extracting archive to {}'.format(dest))
-        with zipfile.ZipFile(export_archive, 'r') as z:
+        with zipfile.ZipFile(archive, 'r') as z:
             z.extractall(dest)
         if delete_archive:
-            os.remove(export_archive)
+            os.remove(archive)
     except:
-        logging.error('Error in extracting export archive {} to {}'.format(
-            export_archive, dest))
+        logging.error('Error in extracting zip archive {} to {}'.format(
+            archive, dest))
         raise
 
 
 def create_tar_archive(str, name='init-user-db.sh'):
-    """Creates tar archive to load single file as suggested by
+    """
+    Creates tar archive to load single file as suggested by
     https://gist.github.com/zbyte64/6800eae10ce082bb78f0b7a2cca5cbc2
     """
     archive_tarstream = BytesIO()
@@ -73,14 +74,14 @@ def get_next_available_port(containers_info):
     return (max(ports) + 1) if ports else 5433
 
 
-def is_container_running(container_name_or_id, docker_client):
+def is_container_running(container_name, docker_client):
     """
     Check whether container is still running.
-    :param container_name_or_id:
+    :param container_name:
     :param docker_client:
     :return isRunning: Boolean
     """
-    container_details = docker_client.inspect_container(container_name_or_id)
+    container_details = docker_client.inspect_container(container_name)
 
     return container_details['State']['Running']
 

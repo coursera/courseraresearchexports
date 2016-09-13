@@ -33,14 +33,14 @@ class ContainerInfo:
         self.database_name = database_name
 
     @classmethod
-    def from_container(cls, container_name_or_id, docker_client):
+    def from_container(cls, container_name, docker_client):
         """
         Create ContainerInfo using the response from docker-py Client's
         `inspect-container` method.
         :param container_dict:
         :return container_info: ContainerInfo
         """
-        container_dict = docker_client.inspect_container(container_name_or_id)
+        container_dict = docker_client.inspect_container(container_name)
         host_config = container_dict['HostConfig']['PortBindings']
         network_settings = container_dict['NetworkSettings']['Ports']
 

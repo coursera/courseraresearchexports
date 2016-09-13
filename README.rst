@@ -44,6 +44,15 @@ To use the ``containers`` functionality, a docker instance must be running.
 Please see the docker `getting started guide <https://docs.docker.com/engine/getstarted/>`_
 for installation instructions for your platform.
 
+Upgrade
+-------
+
+If you have a previously installed version of `courseracourseexports`, execute::
+
+    pip install courseraresearchexports --upgrade
+
+This will upgrade your installation to the newest version.
+
 Command Line Interface
 ----------------------
 
@@ -108,7 +117,7 @@ Retrieve the details and status of an export request::
 
 download
 ~~~~~~~~
-Download an completed ``request tables`` export to your local destination::
+Download a completed table or clickstream to your local destination::
 
     courseraresearchexports jobs download $EXPORT_REQUEST_ID
 
@@ -157,25 +166,25 @@ list
 ~~~~
 Lists the details of all the containers created by ``courseraresearchexports``::
 
-    courserareserachexports containers list
+    courseraresearchexports containers list
 
 start
 ~~~~~
 Start a container::
 
-    courseraresearchexports containers start $CONTAINER_NAME_OR_ID
+    courseraresearchexports containers start $CONTAINER_NAME
 
 stop
 ~~~~
 Stop a container::
 
-    courseraresearchexports containers stop $CONTAINER_NAME_OR_ID
+    courseraresearchexports containers stop $CONTAINER_NAME
 
 remove
 ~~~~~~
 Remove a container::
 
-    courseraresearchexports containers remove $CONTAINER_NAME_OR_ID
+    courseraresearchexports containers remove $CONTAINER_NAME
 
 db
 ^^
@@ -186,30 +195,30 @@ Create a view in the postgres database. We are planning to include commonly
 used denormalized views as part of this project. To create one of these views
 (i.e. for the demographic_survey view)::
 
-    courseraresearchexports db create_view $CONTAINER_NAME_OR_ID --view_name demographic_survey --partner_short_name $PARTNER_SHORT_NAME
+    courseraresearchexports db create_view $CONTAINER_NAME --view_name demographic_survey --partner_short_name $PARTNER_SHORT_NAME
 
-If you have your own sql that you'd like to create as a view::
+If you have your own sql script that you'd like to create as a view::
 
-    courseraresearchexports db create_view $CONTAINER_NAME_OR_ID --sql_file /path/to/sql/file/ --partner_short_name $PARTNER_SHORT_NAME
+    courseraresearchexports db create_view $CONTAINER_NAME --sql_file /path/to/sql/file/ --partner_short_name $PARTNER_SHORT_NAME
 
 unload_to_csv
 ~~~~~~~~~~~~~
 Export a table or view to a csv file.  For example, if the `demographic_survey`
 was created in the above section, use this commmand to create a csv::
 
-    courseraresearchexports db unload_to_csv $CONTAINER_NAME_OR_ID --relation demographic_survey --dest /path/to/dest/
+    courseraresearchexports db unload_to_csv $CONTAINER_NAME --relation demographic_survey --dest /path/to/dest/
 
 list_tables
 ~~~~~~~~~~~
 List all the tables present inside a dockerized database::
 
-    courseraresearchexports db list_tables $CONTAINER_NAME_OR_ID
+    courseraresearchexports db list_tables $CONTAINER_NAME
 
 list_views
 ~~~~~~~~~~
 List all the views present inside a dockerized database::
 
-    courseraresearchexports db list_views $CONTAINER_NAME_OR_ID
+    courseraresearchexports db list_views $CONTAINER_NAME
 
 
 Bugs / Issues / Feature Requests

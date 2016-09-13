@@ -22,7 +22,7 @@ from courseraresearchexports.models.ContainerInfo import ContainerInfo
 
 class ExportDb:
     """
-    Interface for accessing a database within a docker container
+    Interface for accessing a database containing research export data.
     """
     def __init__(self, host_ip=None, host_port=None, db=None, **kwargs):
 
@@ -41,14 +41,14 @@ class ExportDb:
                     db=self.db))
 
     @classmethod
-    def from_container(cls, container_name_or_id, docker_client):
+    def from_container(cls, container_name, docker_client):
         """
-        Create ExportDb object directly from container_name_or_id identifier.
-        :param container_name_or_id:
+        Create ExportDb object directly from container_name identifier.
+        :param container_name:
         :param docker_client:
         :return:
         """
-        container_info = ContainerInfo.from_container(container_name_or_id,
+        container_info = ContainerInfo.from_container(container_name,
                                                       docker_client)
         return cls(host_ip=container_info.host_ip,
                    host_port=container_info.host_port,
