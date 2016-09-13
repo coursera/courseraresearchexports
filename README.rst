@@ -108,7 +108,7 @@ Retrieve the details and status of an export request::
 
 download
 ~~~~~~~~
-Download an completed ``request tables`` export to your local destination::
+Download a completed table or clickstream to your local destination::
 
     courseraresearchexports jobs download $EXPORT_REQUEST_ID
 
@@ -157,7 +157,7 @@ list
 ~~~~
 Lists the details of all the containers created by ``courseraresearchexports``::
 
-    courserareserachexports containers list
+    courseraresearchexports containers list
 
 start
 ~~~~~
@@ -188,7 +188,7 @@ used denormalized views as part of this project. To create one of these views
 
     courseraresearchexports db create_view $CONTAINER_NAME_OR_ID --view_name demographic_survey --partner_short_name $PARTNER_SHORT_NAME
 
-If you have your own sql that you'd like to create as a view::
+If you have your own sql script that you'd like to create as a view::
 
     courseraresearchexports db create_view $CONTAINER_NAME_OR_ID --sql_file /path/to/sql/file/ --partner_short_name $PARTNER_SHORT_NAME
 
