@@ -37,7 +37,6 @@ def extract_export_archive(export_archive, dest, delete_archive=True):
             z.extractall(dest)
         if delete_archive:
             os.remove(export_archive)
-        return dest
     except:
         logging.error('Error in extracting export archive {} to {}'.format(
             export_archive, dest))

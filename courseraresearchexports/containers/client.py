@@ -24,7 +24,10 @@ import time
 
 from courseraresearchexports import exports
 from courseraresearchexports.models.ContainerInfo import ContainerInfo
-from courseraresearchexports.containers import utils
+from courseraresearchexports.constants.api_constants import \
+    EXPORT_TYPE_TABLES
+from courseraresearchexports.containers import utils as container_utils
+from courseraresearchexports.exports import utils as export_utils
 
 
 COURSERA_DOCKER_LABEL = 'courseraResearchExport'
@@ -58,7 +61,7 @@ def start(container_name_or_id, docker_client):
                 container_name_or_id, tail=4):
 
             logging.debug('Polling container for database connection...')
-            if not utils.is_container_running(
+            if not container_utils.is_container_running(
                     container_name_or_id, docker_client):
                 raise RuntimeError('Container failed to start.')
 
@@ -101,8 +104,8 @@ def initialize(container_name_or_id, docker_client):
                 container_name_or_id, tail=20):
 
             logging.debug('Polling data for entrypoint initialization...')
-            if not utils.is_container_running(container_name_or_id,
-                                              docker_client):
+            if not container_utils.is_container_running(container_name_or_id,
+                                                        docker_client):
                 raise RuntimeError('Container initialization failed.')
 
             time.sleep(10)
@@ -152,7 +155,7 @@ def create_from_folder(export_data_folder, docker_client,
         host_config=docker_client.create_host_config(
             binds=['{}:/mnt/exportData:ro'.format(export_data_folder)],
             port_bindings={
-                5432: utils.get_next_available_port(list_all(
+                5432: container_utils.get_next_available_port(list_all(
                     docker_client))
             }))
 
@@ -169,7 +172,7 @@ def create_from_folder(export_data_folder, docker_client,
     docker_client.put_archive(
         container_id,  # using a named argument causes NullResource error
         path='/docker-entrypoint-initdb.d/',
-        data=utils.create_tar_archive(
+        data=container_utils.create_tar_archive(
             database_setup_script, name='init-user-db.sh'))
 
     logging.info('Created container with id: {}'.format(container_id))
@@ -193,19 +196,22 @@ def create_from_export_request_id(export_request_id, docker_client,
     """
     export_request = exports.api.get(export_request_id)[0]
 
-    if export_request.export_type != exports.constants.EXPORT_TYPE_TABLES:
+    if export_request.export_type != EXPORT_TYPE_TABLES:
         raise ValueError('Invalid Export Type. (Only tables exports supported.'
                          'Given [{}])'.format(export_request.export_type))
 
     logging.info('Downloading export {}'.format(export_request_id))
-    export_archive = export_request.download(dest=COURSERA_LOCAL_FOLDER)
-    export_data_folder = utils.extract_export_archive(
-            export_archive,
-            dest=os.path.join(COURSERA_LOCAL_FOLDER, export_request_id),
+    downloaded_files = export_utils.download(
+        export_request, dest=COURSERA_LOCAL_FOLDER)
+    dest = os.path.join(COURSERA_LOCAL_FOLDER, export_request_id)
+    for f in downloaded_files:
+        container_utils.extract_export_archive(
+            export_archive=f,
+            dest=dest,
             delete_archive=True)
 
     container_id = create_from_folder(
-        export_data_folder=export_data_folder,
+        export_data_folder=dest,
         docker_client=docker_client,
         database_name=(database_name if database_name
                        else export_request.scope_name),
@@ -213,6 +219,6 @@ def create_from_export_request_id(export_request_id, docker_client,
                         else export_request.scope_name)
     )
 
-    shutil.rmtree(export_data_folder)
+    shutil.rmtree(dest)
 
     return container_id

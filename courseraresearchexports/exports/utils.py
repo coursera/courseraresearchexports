@@ -62,15 +62,14 @@ def download(export_request, dest):
             os.makedirs(dest)
 
         if is_table_export:
-            download_url(export_request.download_link, dest)
+            return [download_url(export_request.download_link, dest)]
         elif is_clickstream_export:
             links_request = ClickstreamDownloadLinksRequest.from_args(
                 course_id=export_request.course_id,
                 partner_id=export_request.partner_id,
                 interval=export_request.interval)
             download_links = api.get_clickstream_download_links(links_request)
-            for link in download_links:
-                download_url(link, dest)
+            return [download_url(link, dest) for link in download_links]
         else:
             raise ValueError('Require export_type is one of {} or {}'.format(
                 EXPORT_TYPE_TABLES,
@@ -99,3 +98,4 @@ def download_url(url, dest_folder):
                 unit='MB',
                 desc=filename):
             f.write(data)
+    return full_filename
