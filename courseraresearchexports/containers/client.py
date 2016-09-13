@@ -48,74 +48,74 @@ def list_all(docker_client):
             all=True, filters={'label': COURSERA_DOCKER_LABEL})]
 
 
-def start(container_name_or_id, docker_client):
+def start(container_name, docker_client):
     """
     Start a docker container containing a research export database. Waits until
     """
     try:
-        logging.debug('Starting container {}...'.format(container_name_or_id))
-        docker_client.start(container_name_or_id)
+        logging.debug('Starting container {}...'.format(container_name))
+        docker_client.start(container_name)
 
         # poll logs to see if database is ready to accept connections
         while POSTGRES_READY_MSG not in docker_client.logs(
-                container_name_or_id, tail=4):
+                container_name, tail=4):
 
             logging.debug('Polling container for database connection...')
             if not container_utils.is_container_running(
-                    container_name_or_id, docker_client):
+                    container_name, docker_client):
                 raise RuntimeError('Container failed to start.')
 
             time.sleep(10)
 
-        logging.info('Started container {}.'.format(container_name_or_id))
+        logging.info('Started container {}.'.format(container_name))
 
     except:
         logging.error(
             """Container failed to start, check log for errors:\n{}"""
-            .format(docker_client.logs(container_name_or_id, tail=20)))
+            .format(docker_client.logs(container_name, tail=20)))
         raise
 
 
-def stop(container_name_or_id, docker_client):
+def stop(container_name, docker_client):
     """
     Stops a docker container
     """
-    docker_client.stop(container_name_or_id)
+    docker_client.stop(container_name)
 
 
-def remove(container_name_or_id, docker_client):
+def remove(container_name, docker_client):
     """
     Remove a stopped container
     """
-    docker_client.remove_container(container_name_or_id)
+    docker_client.remove_container(container_name)
 
 
-def initialize(container_name_or_id, docker_client):
+def initialize(container_name, docker_client):
     """
     Initialize a docker container. Polls database for completion of
     entrypoint tasks.
     """
     try:
         logging.info('Initializing container {}...'.format(
-            container_name_or_id))
+            container_name))
 
-        docker_client.start(container_name_or_id)
+        docker_client.start(container_name)
         while POSTGRES_INIT_MSG not in docker_client.logs(
-                container_name_or_id, tail=20):
+                container_name, tail=20):
 
             logging.debug('Polling data for entrypoint initialization...')
-            if not container_utils.is_container_running(container_name_or_id,
+            if not container_utils.is_container_running(container_name,
                                                         docker_client):
                 raise RuntimeError('Container initialization failed.')
 
             time.sleep(10)
 
-        logging.info('Initialized container {}.'.format(container_name_or_id))
+        logging.info('Initialized container {}.'.format(container_name))
 
     except:
         logging.error(
             """Container initialization failed, check log for errors:\n{}"""
-            .format(docker_client.logs(container_name_or_id, tail=20)))
+            .format(docker_client.logs(container_name, tail=20)))
         logging.error(
             """If error persists, consider restarting your docker engine.""")
         raise
@@ -134,30 +134,19 @@ def create_from_folder(export_data_folder, docker_client,
     :param database_name:
     :return container_id:
     """
-    if not docker_client.images(name=POSTGRES_DOCKER_IMAGE):
-        logging.info('Downloading image: {}'.format(POSTGRES_DOCKER_IMAGE))
-        docker_client.import_image(image=POSTGRES_DOCKER_IMAGE)
-
-    for existing_container in docker_client.containers(
-            all=True, filters={'name': container_name}):
-        logging.info('Removing existing container with name: {}'.format(
-            container_name))
-        docker_client.stop(existing_container)
-        docker_client.remove_container(existing_container)
-
     logging.debug('Creating containers from {folder}'.format(
         folder=export_data_folder))
-    container = docker_client.create_container(
-        image=POSTGRES_DOCKER_IMAGE,
-        name=container_name,
-        labels={COURSERA_DOCKER_LABEL: None, 'database_name': database_name},
-        volumes=['/mnt/exportData'],
-        host_config=docker_client.create_host_config(
+    create_container_args = {
+        'volumes': ['/mnt/exportData'],
+        'host_config': docker_client.create_host_config(
             binds=['{}:/mnt/exportData:ro'.format(export_data_folder)],
             port_bindings={
                 5432: container_utils.get_next_available_port(list_all(
                     docker_client))
-            }))
+            })
+    }
+    container = create_postgres_container(
+        docker_client, container_name, database_name, create_container_args)
 
     container_id = container['Id']
 
@@ -180,6 +169,27 @@ def create_from_folder(export_data_folder, docker_client,
     initialize(container_id, docker_client)
 
     return container_id
+
+
+def create_postgres_container(docker_client, container_name, database_name,
+                              create_container_args):
+    if not docker_client.images(name=POSTGRES_DOCKER_IMAGE):
+        logging.info('Downloading image: {}'.format(POSTGRES_DOCKER_IMAGE))
+        docker_client.import_image(image=POSTGRES_DOCKER_IMAGE)
+
+    for existing_container in docker_client.containers(
+            all=True, filters={'name': container_name}):
+        logging.info('Removing existing container with name: {}'.format(
+            container_name))
+        docker_client.stop(existing_container)
+        docker_client.remove_container(existing_container)
+    create_container_args['image'] = POSTGRES_DOCKER_IMAGE
+    create_container_args['name'] = container_name
+    create_container_args['labels'] = {
+        COURSERA_DOCKER_LABEL: None,
+        'database_name': database_name
+    }
+    return docker_client.create_container(**create_container_args)
 
 
 def create_from_export_request_id(export_request_id, docker_client,
@@ -205,8 +215,8 @@ def create_from_export_request_id(export_request_id, docker_client,
         export_request, dest=COURSERA_LOCAL_FOLDER)
     dest = os.path.join(COURSERA_LOCAL_FOLDER, export_request_id)
     for f in downloaded_files:
-        container_utils.extract_export_archive(
-            export_archive=f,
+        container_utils.extract_zip_archive(
+            archive=f,
             dest=dest,
             delete_archive=True)
 

@@ -75,7 +75,7 @@ def start_container(args):
     Start a docker container.
     """
     d = utils.docker_client(args.docker_url, args.timeout)
-    client.start(args.container_name_or_id, docker_client=d)
+    client.start(args.container_name, docker_client=d)
 
 
 def stop_container(args):
@@ -83,7 +83,7 @@ def stop_container(args):
     Stop a docker container.
     """
     d = utils.docker_client(args.docker_url, args.timeout)
-    client.stop(args.container_name_or_id, docker_client=d)
+    client.stop(args.container_name, docker_client=d)
 
 
 def remove_container(args):
@@ -92,7 +92,7 @@ def remove_container(args):
     before removing.
     """
     d = utils.docker_client(args.docker_url, args.timeout)
-    client.remove(args.container_name_or_id, docker_client=d)
+    client.remove(args.container_name, docker_client=d)
 
 
 def parser(subparsers):
@@ -143,24 +143,24 @@ def parser(subparsers):
         'stop',
         help=stop_container.__doc__)
     parser_stop.add_argument(
-        'container_name_or_id',
-        help='Name or id of container to stop.')
+        'container_name',
+        help='Name of the container to stop.')
     parser_stop.set_defaults(func=stop_container)
 
     parser_start = containers_subparsers.add_parser(
         'start',
         help=start_container.__doc__)
     parser_start.add_argument(
-        'container_name_or_id',
-        help='Name or id of container to start.')
+        'container_name',
+        help='Name of the container to start.')
     parser_start.set_defaults(func=start_container)
 
     parser_remove = containers_subparsers.add_parser(
         'remove',
         help=remove_container.__doc__)
     parser_remove.add_argument(
-        'container_name_or_id',
-        help='Name or id of container to remove.')
+        'container_name',
+        help='Name of the container to remove.')
     parser_remove.set_defaults(func=remove_container)
 
     return parser_containers

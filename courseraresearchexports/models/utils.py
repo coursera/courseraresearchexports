@@ -89,4 +89,4 @@ def lookup_partner_short_name_by_id(partner_id):
     """
     Find the partner_id by short name
     """
-    return requests.get(requests.compat.urljoin(PARTNER_API, partner_id))
+    return requests.get(requests.compat.urljoin(PARTNER_API, str(partner_id)))

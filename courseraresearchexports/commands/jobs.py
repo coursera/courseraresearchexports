@@ -103,7 +103,7 @@ def get(args):
 
     if export_request.interval:
         export_request_info.append(
-            ['Interval:', '_'.join(export_request.interval)])
+            ['Interval:', ' to '.join(export_request.interval)])
 
     logging.info('\n' + tabulate(export_request_info, tablefmt="plain"))
 
