@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,14 +16,14 @@ import logging
 from tabulate import tabulate
 
 import courseraresearchexports.db.db as db
-import courseraresearchexports.utils.container_utils as container_utils
+from courseraresearchexports.containers import utils
 
 
 def list_tables(args):
     """
     List all of the tables present in a dockerized database.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     tables = db.get_table_names(args.container_name_or_id, docker_client=d)
     logging.info('\n' + tabulate([[table] for table in tables]))
 
@@ -34,7 +32,7 @@ def list_views(args):
     """
     List all of the views present in a dockerized database.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     tables = db.get_view_names(args.container_name_or_id, docker_client=d)
     logging.info('\n' + tabulate([[table] for table in tables]))
 
@@ -43,7 +41,7 @@ def create_view(args):
     """
     Create a view from a sql query.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
 
     if args.view_name:
         created_view = db.create_registered_view(
@@ -61,7 +59,7 @@ def unload_relation(args):
     """
     Unload a table or view to a CSV file.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     rowcount = db.unload_relation(args.container_name_or_id, args.dest,
                                   args.relation, d)
 
@@ -75,7 +73,7 @@ def parser(subparsers):
     parser_db = subparsers.add_parser(
         'db',
         help='Tools for interacting with dockerized database',
-        parents=[container_utils.docker_client_arg_parser()])
+        parents=[utils.docker_client_arg_parser()])
 
     db_subparsers = parser_db.add_subparsers()
 

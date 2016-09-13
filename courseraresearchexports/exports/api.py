@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +18,7 @@ Coursera's wrapper for data exports API.
 
 import requests
 from courseraoauth2client import oauth2
-from courseraresearchexports.utils.export_utils import \
-    requests_response_to_model
+from courseraresearchexports.models.utils import requests_response_to_model
 from courseraresearchexports.constants.api_constants import \
     RESEARCH_EXPORTS_APP, RESEARCH_EXPORTS_API, CLICKSTREAM_API
 from courseraresearchexports.models.ExportRequestWithMetadata import \

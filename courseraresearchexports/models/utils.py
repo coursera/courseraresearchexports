@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,34 +13,11 @@
 # limitations under the License.
 
 import logging
-import os
-import zipfile
 
 import requests
 
-from courseraresearchexports.constants.api_constants import COURSE_API, \
-    PARTNER_API
-
-
-def extract_export_archive(export_archive, dest, delete_archive=True):
-    """
-    Extracts a compressed folder
-    :param export_archive:
-    :param dest:
-    :param delete_archive: delete the archive after extracting
-    :return dest:
-    """
-    try:
-        logging.debug('Extracting archive to {}'.format(dest))
-        with zipfile.ZipFile(export_archive, 'r') as z:
-            z.extractall(dest)
-        if delete_archive:
-            os.remove(export_archive)
-        return dest
-    except:
-        logging.error('Error in extracting export archive {} to {}'.format(
-            export_archive, dest))
-        raise
+from courseraresearchexports.constants.api_constants import \
+    COURSE_API, PARTNER_API
 
 
 def requests_response_to_model(response_transformer):

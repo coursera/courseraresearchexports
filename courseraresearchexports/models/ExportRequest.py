@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +15,7 @@
 from courseraresearchexports.constants.api_constants import \
     ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED, EXPORT_TYPE_TABLES,\
     EXPORT_TYPE_CLICKSTREAM, EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES
-from courseraresearchexports.utils import export_utils as utils
+from courseraresearchexports.models import utils
 
 
 class ExportRequest:

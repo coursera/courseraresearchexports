@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +14,7 @@
 
 import logging
 
-from courseraresearchexports.utils import export_utils
+from courseraresearchexports.models import utils
 
 
 class ClickstreamDownloadLinksRequest:
@@ -39,11 +37,11 @@ class ClickstreamDownloadLinksRequest:
         :return eventing_links_request: ClickstreamDownloadLinksRequest
         """
         if kwargs.get('course_slug') and not kwargs.get('course_id'):
-            kwargs['course_id'] = export_utils.lookup_course_id_by_slug(
+            kwargs['course_id'] = utils.lookup_course_id_by_slug(
                 kwargs['course_slug'])
         elif kwargs.get('partner_short_name') and not kwargs.get('partner_id'):
             kwargs['partner_id'] = \
-                export_utils.lookup_partner_id_by_short_name(
+                utils.lookup_partner_id_by_short_name(
                     kwargs['partner_short_name'])
         elif kwargs.get('group_id'):
             logging.error(

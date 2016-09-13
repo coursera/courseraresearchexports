@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +17,14 @@ import json
 import argparse
 import logging
 
-
 from courseraresearchexports.exports import api
-from courseraresearchexports.constants import api_constants
+from courseraresearchexports.constants.api_constants import \
+    ANONYMITY_LEVEL_COORDINATOR, EXPORT_TYPE_CLICKSTREAM, \
+    EXPORT_TYPE_TABLES, SCHEMA_NAMES
 from courseraresearchexports.models.ClickstreamDownloadLinksRequest import \
     ClickstreamDownloadLinksRequest
 from courseraresearchexports.models.ExportRequest import ExportRequest
+from courseraresearchexports.exports import utils
 
 
 def request_clickstream(args):
@@ -38,9 +38,9 @@ def request_clickstream(args):
         partner_id=args.partner_id,
         parter_short_name=args.partner_short_name,
         group_id=args.group_id,
-        anonymity_level=api_constants.ANONYMITY_LEVEL_COORDINATOR,
+        anonymity_level=ANONYMITY_LEVEL_COORDINATOR,
         statement_of_purpose=args.purpose,
-        export_type=api_constants.EXPORT_TYPE_CLICKSTREAM,
+        export_type=EXPORT_TYPE_CLICKSTREAM,
         interval=args.interval,
         ignore_existing=args.ignore_existing)
 
@@ -65,7 +65,7 @@ def request_tables(args):
         group_id=args.group_id,
         user_id_hashing=args.user_id_hashing,
         statement_of_purpose=args.purpose,
-        export_type=api_constants.EXPORT_TYPE_TABLES,
+        export_type=EXPORT_TYPE_TABLES,
         schema_names=args.schemas)
 
     export_request_with_metadata = api.post(export_request)[0]
@@ -135,10 +135,10 @@ def download(args):
     """
     try:
         export_request = api.get(args.id)[0]
-        export_request.download(args.dest)
-
+        dest = args.dest
+        utils.download(export_request, dest)
     except Exception as err:
-        logging.error('Download failed.\n{err}'.format(err=err))
+        logging.error('Download failed with exception:\n{}'.format(err))
         raise
 
 
@@ -293,12 +293,12 @@ def create_request_parser(subparsers):
 
     parser_tables.add_argument(
         '--schemas',
-        choices=api_constants.SCHEMA_NAMES,
+        choices=SCHEMA_NAMES,
         nargs='+',
-        default=api_constants.SCHEMA_NAMES,
+        default=SCHEMA_NAMES,
         help='Data schemas to export. Any combination of: {}. By default this '
         'will be all available schemas.'.format(
-            ', '.join(api_constants.SCHEMA_NAMES)))
+            ', '.join(SCHEMA_NAMES)))
 
     # clickstream subcommand
     parser_clickstream = request_subparsers.add_parser(

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +13,8 @@
 # limitations under the License.
 
 from datetime import datetime
-from urlparse import urlparse
-import logging
-import os
 import time
 
-from tqdm import tqdm
-import requests
-
-from courseraresearchexports.constants.api_constants import \
-    EXPORT_TYPE_TABLES, EXPORT_TYPE_CLICKSTREAM
 from courseraresearchexports.models.ExportRequest import ExportRequest
 
 
@@ -92,8 +82,7 @@ class ExportRequestMetadata:
 class ExportRequestWithMetadata(ExportRequest):
     """
     Class representing a export request from Coursera's research data export
-    service with metadata about its status with methods to download the
-    completed data export archive to local storage.
+    service with metadata about its status.
     """
 
     def __init__(self, course_id=None, partner_id=None, group_id=None,
@@ -210,59 +199,6 @@ class ExportRequestWithMetadata(ExportRequest):
             return self._metadata._created_at
         else:
             return datetime.fromtimestamp(0)
-
-    def download(self, dest):
-        """
-        Download an export archive associated with this export request
-        :param dest:
-        :return output_filename:
-        """
-        if self._export_type == EXPORT_TYPE_CLICKSTREAM:
-            logging.error(
-                'Generate download links to access eventing export requests '
-                'using `courseraresearchexports jobs eventing_download_links`.'
-                ' Please refer to the Coursera Export Guide for details'
-                'https://coursera.gitbooks.io/data-exports/content/'
-                'introduction/introduction/commandline_access_md.html')
-            raise ValueError(
-                'Require export_type = {}'.format(EXPORT_TYPE_TABLES))
-        elif not self._download_link:
-            if self._status in ['PENDING', 'IN_PROGRESS']:
-                logging.error(
-                    'Export request {} is currently {} and is not ready for'
-                    'download. Please wait until the request is completed.'
-                    .format(self._id, self._status))
-                raise ValueError(
-                    'Export request is not yet ready for download')
-            elif self._status == 'TERMINATED':
-                logging.error(
-                    'Export request has been TERMINATED. Please contact '
-                    'data-support@coursera.org if we have not resolved this '
-                    'within 24 hours.')
-                raise ValueError('Export request has been TERMINATED')
-            else:
-                logging.error('Download link was not found.')
-                raise ValueError('Download link was not found')
-
-        if not os.path.exists(dest):
-            logging.debug('Creating destination folder: {}'.format(dest))
-            os.makedirs(dest)
-
-        export_filename = urlparse(self._download_link).path.split('/')[-1]
-        response = requests.get(self._download_link, stream=True)
-        chunk_size = 1024 * 1024
-        output_filename = os.path.join(dest, export_filename)
-        logging.debug('Writing to file: {}'.format(output_filename))
-
-        with open(output_filename, 'wb') as f:
-            for data in tqdm(
-                    iterable=response.iter_content(chunk_size),
-                    total=int(response.headers['Content-length']) / chunk_size,
-                    unit='MB',
-                    desc=export_filename):
-                f.write(data)
-
-        return output_filename
 
 
 def datetime_to_unix_ms(dt):

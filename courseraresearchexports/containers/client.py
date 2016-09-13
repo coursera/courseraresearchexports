@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +24,10 @@ import time
 
 from courseraresearchexports import exports
 from courseraresearchexports.models.ContainerInfo import ContainerInfo
-from courseraresearchexports.utils import container_utils
-from courseraresearchexports.utils import export_utils
+from courseraresearchexports.constants.api_constants import \
+    EXPORT_TYPE_TABLES
+from courseraresearchexports.containers import utils as container_utils
+from courseraresearchexports.exports import utils as export_utils
 
 
 COURSERA_DOCKER_LABEL = 'courseraResearchExport'
@@ -196,19 +196,22 @@ def create_from_export_request_id(export_request_id, docker_client,
     """
     export_request = exports.api.get(export_request_id)[0]
 
-    if export_request.export_type != exports.constants.EXPORT_TYPE_TABLES:
+    if export_request.export_type != EXPORT_TYPE_TABLES:
         raise ValueError('Invalid Export Type. (Only tables exports supported.'
                          'Given [{}])'.format(export_request.export_type))
 
     logging.info('Downloading export {}'.format(export_request_id))
-    export_archive = export_request.download(dest=COURSERA_LOCAL_FOLDER)
-    export_data_folder = export_utils.extract_export_archive(
-            export_archive,
-            dest=os.path.join(COURSERA_LOCAL_FOLDER, export_request_id),
+    downloaded_files = export_utils.download(
+        export_request, dest=COURSERA_LOCAL_FOLDER)
+    dest = os.path.join(COURSERA_LOCAL_FOLDER, export_request_id)
+    for f in downloaded_files:
+        container_utils.extract_export_archive(
+            export_archive=f,
+            dest=dest,
             delete_archive=True)
 
     container_id = create_from_folder(
-        export_data_folder=export_data_folder,
+        export_data_folder=dest,
         docker_client=docker_client,
         database_name=(database_name if database_name
                        else export_request.scope_name),
@@ -216,6 +219,6 @@ def create_from_export_request_id(export_request_id, docker_client,
                         else export_request.scope_name)
     )
 
-    shutil.rmtree(export_data_folder)
+    shutil.rmtree(dest)
 
     return container_id

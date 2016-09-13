@@ -32,8 +32,7 @@ setup(
               'courseraresearchexports.exports',
               'courseraresearchexports.containers',
               'courseraresearchexports.models',
-              'courseraresearchexports.db',
-              'courseraresearchexports.utils'],
+              'courseraresearchexports.db'],
     package_data={'courseraresearchexports': ['sql/*.sql']},
     install_requires=[
         'argcomplete>=1.4.1',

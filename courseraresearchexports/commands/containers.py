@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2016 Coursera
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +17,7 @@ import logging
 from tabulate import tabulate
 
 from courseraresearchexports.containers import client
-from courseraresearchexports.utils import container_utils
+from courseraresearchexports.containers import utils
 
 
 def create_container(args):
@@ -28,7 +26,7 @@ def create_container(args):
     Export job will be downloaded and loaded into dockerized database.
     Automatically starts container.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
 
     kwargs = {}
     if args.container_name:
@@ -50,7 +48,7 @@ def list_containers(args):
     """
     List docker containers created with Coursera data exports.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     containers_info = client.list_all(docker_client=d)
 
     if containers_info:
@@ -76,7 +74,7 @@ def start_container(args):
     """
     Start a docker container.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     client.start(args.container_name_or_id, docker_client=d)
 
 
@@ -84,7 +82,7 @@ def stop_container(args):
     """
     Stop a docker container.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     client.stop(args.container_name_or_id, docker_client=d)
 
 
@@ -93,7 +91,7 @@ def remove_container(args):
     Remove a docker container, stop the container
     before removing.
     """
-    d = container_utils.docker_client(args.docker_url, args.timeout)
+    d = utils.docker_client(args.docker_url, args.timeout)
     client.remove(args.container_name_or_id, docker_client=d)
 
 
@@ -109,7 +107,7 @@ def parser(subparsers):
         'https://github.com/coursera/courseraresearchexports/issues. If you '
         'would like to contribute to this tool\'s development, check us out '
         'at: https://github.com/coursera/courseraresarchexports',
-        parents=[container_utils.docker_client_arg_parser()])
+        parents=[utils.docker_client_arg_parser()])
 
     containers_subparsers = parser_containers.add_subparsers()
 
