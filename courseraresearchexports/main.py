@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 # PYTHON_ARGCOMPLETE_OK
 
 # Copyright 2016 Coursera
