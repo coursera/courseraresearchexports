@@ -7,7 +7,7 @@ def readme():
 
 setup(
     name='courseraresearchexports',
-    version='0.0.5',
+    version='0.0.11',
     description='Command line tool for convenient access to '
     'Coursera Research Data Exports.',
     long_description=readme(),
@@ -18,8 +18,8 @@ setup(
     ],
     keywords='coursera',
     url='https://github.com/coursera/courseraresearchexports',
-    author='Timothy Lee',
-    author_email='tlee@coursera.org',
+    author='Chris Liu',
+    author_email='cliu@coursera.org',
     license='Apache',
     entry_points={
         'console_scripts': [
@@ -33,7 +33,6 @@ setup(
               'courseraresearchexports.containers',
               'courseraresearchexports.models',
               'courseraresearchexports.db'],
-    package_data={'courseraresearchexports': ['sql/*.sql']},
     install_requires=[
         'argcomplete>=1.4.1',
         'courseraoauth2client>=0.0.1',
@@ -46,6 +45,9 @@ setup(
     ],
     test_suite='nose.collector',
     tests_require=['nose', 'nose-cover3'],
+    # IMPORTANT: This makes MANIFEST.in work. DO NOT USE `package_data`, as
+    # it does not work with sdist correctly.
+    # See http://flask.pocoo.org/docs/0.11/patterns/distribute/ for details
     include_package_data=True,
     zip_safe=False
 )
