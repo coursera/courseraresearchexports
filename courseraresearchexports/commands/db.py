@@ -110,7 +110,8 @@ def parser(subparsers):
         help='SQL file with query.')
     parser_create_view.add_argument(
         '--partner_short_name',
-        help='Your partner short name.')
+        help='Your partner short name.',
+        required=True)
 
     parser_unload = db_subparsers.add_parser(
         'unload_to_csv',
