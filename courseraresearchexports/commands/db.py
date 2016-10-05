@@ -45,12 +45,10 @@ def create_view(args):
 
     if args.view_name:
         created_view = db.create_registered_view(
-            args.container_name, args.view_name,
-            args.partner_short_name, d)
+            args.container_name, args.view_name, d)
     elif args.sql_file:
         created_view = db.create_view_from_file(
-            args.container_name, args.sql_file,
-            args.partner_short_name, d)
+            args.container_name, args.sql_file, d)
 
     logging.info('Created view {}'.format(created_view))
 
@@ -108,10 +106,6 @@ def parser(subparsers):
     create_source_subparser.add_argument(
         '--sql_file',
         help='SQL file with query.')
-    parser_create_view.add_argument(
-        '--partner_short_name',
-        help='Your partner short name.',
-        required=True)
 
     parser_unload = db_subparsers.add_parser(
         'unload_to_csv',
