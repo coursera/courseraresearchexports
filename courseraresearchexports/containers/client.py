@@ -23,18 +23,14 @@ import shutil
 import time
 
 from courseraresearchexports import exports
-from courseraresearchexports.models.ContainerInfo import ContainerInfo
 from courseraresearchexports.constants.api_constants import \
     EXPORT_TYPE_TABLES
+from courseraresearchexports.constants.container_constants import \
+    COURSERA_DOCKER_LABEL, COURSERA_LOCAL_FOLDER, POSTGRES_DOCKER_IMAGE, \
+    POSTGRES_INIT_MSG, POSTGRES_READY_MSG
 from courseraresearchexports.containers import utils as container_utils
 from courseraresearchexports.exports import utils as export_utils
-
-
-COURSERA_DOCKER_LABEL = 'courseraResearchExport'
-COURSERA_LOCAL_FOLDER = os.path.expanduser('~/.coursera/exports/')
-POSTGRES_DOCKER_IMAGE = 'postgres:9.5'
-POSTGRES_INIT_MSG = 'PostgreSQL init process complete; ready for start up.'
-POSTGRES_READY_MSG = 'database system is ready to accept connections'
+from courseraresearchexports.models.ContainerInfo import ContainerInfo
 
 
 def list_all(docker_client):

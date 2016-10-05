@@ -151,16 +151,7 @@ your export. To create a docker container with an already downloaded export
 
 After creation use the ``list`` command to check the status of the
 container and view the container name, database name, address and port to
-connect to the database. Using docker, you can connect to the database by
-running::
-
-    docker run -it --rm --link $CONTAINER_NAME postgres:9.5 psql -h $CONTAINER_NAME -d $DATABASE_NAME -U postgres
-
-If you have ``psql`` installed, you can connect with::
-
-    psql -p $HOST_PORT -h $HOST_IP -d $DATABASE_NAME -U postgres
-
-with the parameters provided by ``list``.
+connect to the database. Use the `db connect` command to open a psql shell.
 
 list
 ~~~~
@@ -188,6 +179,12 @@ Remove a container::
 
 db
 ^^
+
+connect
+~~~~~~~
+Open a shell to a postgres database::
+
+    courseraresearechexports db connect $CONTAINER_NAME
 
 create_view
 ~~~~~~~~~~~
