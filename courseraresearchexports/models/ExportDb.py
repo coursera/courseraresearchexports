@@ -125,6 +125,3 @@ class ExportDb:
         """
         insp = reflection.Inspector.from_engine(self.engine)
         return insp.get_view_names()
-
-
-

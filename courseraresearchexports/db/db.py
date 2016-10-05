@@ -64,18 +64,6 @@ def infer_user_id_column(columns):
                  if column.endswith('user_id')), None)
 
 
-def get_column_names(container_name, docker_client, table):
-    """
-    Returns column names of a table.
-    :param container_name:
-    :param docker_client:
-    :return table_names:
-    """
-    export_db = ExportDb.from_container(container_name, docker_client)
-
-    return export_db.get_columns(table)
-
-
 def get_table_names(container_name, docker_client):
     """
     Returns table names present in containerized database.
