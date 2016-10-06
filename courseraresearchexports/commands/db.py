@@ -19,6 +19,14 @@ import courseraresearchexports.db.db as db
 from courseraresearchexports.containers import utils
 
 
+def connect(args):
+    """
+    Connect postgres shell to dockerized database.
+    """
+    d = utils.docker_client(args.docker_url, args.timeout)
+    db.connect(args.container_name, docker_client=d)
+
+
 def list_tables(args):
     """
     List all of the tables present in a dockerized database.
@@ -120,5 +128,13 @@ def parser(subparsers):
     parser_unload.add_argument(
         '--relation',
         help='Table or view to export.')
+
+    parser_connect = db_subparsers.add_parser(
+        'connect',
+        help=connect.__doc__)
+    parser_connect.set_defaults(func=connect)
+    parser_connect.add_argument(
+        'container_name',
+        help='Name of the container database.')
 
     return parser_db

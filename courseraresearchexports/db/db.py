@@ -15,7 +15,11 @@
 import os
 import logging
 import pkg_resources
+import subprocess
 
+from courseraresearchexports.constants.container_constants import \
+    POSTGRES_DOCKER_IMAGE
+from courseraresearchexports.models.ContainerInfo import ContainerInfo
 from courseraresearchexports.models.ExportDb import ExportDb
 from courseraresearchexports.constants.db_constants import \
     HASHED_USER_ID_COLUMN_TO_SOURCE_TABLE
@@ -62,6 +66,25 @@ def infer_user_id_column(columns):
     """
     return next((column for column in columns
                  if column.endswith('user_id')), None)
+
+
+def connect(container_name, docker_client):
+    """
+    Create psql shell to container databaise
+    :param container_name:
+    :param docker_client:
+    """
+    container_info = ContainerInfo.from_container(
+        container_name, docker_client)
+
+    subprocess.call([
+        'docker', 'run', '-it', '--rm',
+        '--link', container_info.name,
+        POSTGRES_DOCKER_IMAGE, 'psql',
+        '-h', container_info.name,
+        '-d', container_info.database_name,
+        '-U', 'postgres'
+    ], shell=False)
 
 
 def get_table_names(container_name, docker_client):
