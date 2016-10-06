@@ -151,7 +151,8 @@ your export. To create a docker container with an already downloaded export
 
 After creation use the ``list`` command to check the status of the
 container and view the container name, database name, address and port to
-connect to the database. Use the `db connect` command to open a psql shell.
+connect to the database. Use the `db connect $CONTAINER_NAME` command to open
+a psql shell.
 
 list
 ~~~~
