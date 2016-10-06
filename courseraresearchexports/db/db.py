@@ -21,6 +21,51 @@ from courseraresearchexports.constants.container_constants import \
     POSTGRES_DOCKER_IMAGE
 from courseraresearchexports.models.ContainerInfo import ContainerInfo
 from courseraresearchexports.models.ExportDb import ExportDb
+from courseraresearchexports.constants.db_constants import \
+    HASHED_USER_ID_COLUMN_TO_SOURCE_TABLE
+
+
+def replace_user_id_placeholders(export_db, sql_text):
+    """
+    Replace placeholders with actual user_id column names
+    :param export_db:
+    :param sql_text:
+    :return sql_text_with_inferred_columns:
+    """
+    hashed_user_id_columns_dict = infer_hashed_user_id_columns(export_db)
+
+    for placeholder, column_name in hashed_user_id_columns_dict.items():
+        sql_text = sql_text.replace(placeholder, column_name)
+
+    return sql_text
+
+
+def infer_hashed_user_id_columns(export_db):
+    """
+    Infer hashed_user_id_columns from database using known placeholders
+    :param export_db:
+    :return:
+    """
+    hashed_user_id_columns_dict = {}
+
+    for placeholder, table in HASHED_USER_ID_COLUMN_TO_SOURCE_TABLE.items():
+        if table in export_db.tables:
+            columns = export_db.get_columns(table)
+            inferred_column = infer_user_id_column(columns)
+            if inferred_column:
+                hashed_user_id_columns_dict[placeholder] = inferred_column
+
+    return hashed_user_id_columns_dict
+
+
+def infer_user_id_column(columns):
+    """
+    Infer partner_short_name
+    :param columns:
+    :return:
+    """
+    return next((column for column in columns
+                 if column.endswith('user_id')), None)
 
 
 def connect(container_name, docker_client):
@@ -85,8 +130,7 @@ def unload_relation(container_name, dest, relation, docker_client):
     return rowcount
 
 
-def create_registered_view(container_name, view_name, partner_short_name,
-                           docker_client):
+def create_registered_view(container_name, view_name, docker_client):
     """
     Create a prepackaged view
     :param container_name:
@@ -99,16 +143,15 @@ def create_registered_view(container_name, view_name, partner_short_name,
 
     sql_text = pkg_resources.resource_string(
         __name__.split('.')[0], 'sql/{}.sql'.format(view_name))
-    sql_text_with_partner_short_name = sql_text.replace(
-        '[partner_short_name]', partner_short_name)
+    sql_text_with_inferred_columns = replace_user_id_placeholders(
+        export_db, sql_text)
 
-    export_db.create_view(view_name, sql_text_with_partner_short_name)
+    export_db.create_view(view_name, sql_text_with_inferred_columns)
 
     return view_name
 
 
-def create_view_from_file(container_name, sql_file, partner_short_name,
-                          docker_client):
+def create_view_from_file(container_name, sql_file, docker_client):
     """
     Create a view from a sql file.
     :param container_name:
@@ -123,9 +166,9 @@ def create_view_from_file(container_name, sql_file, partner_short_name,
         sql_text = sf.read()
 
     view_name = os.path.split(os.path.basename(sql_text))[0]
-    sql_text_with_partner_short_name = sql_text.replace(
-        '[partner_short_name]', partner_short_name)
+    sql_text_with_inferred_columns = replace_user_id_placeholders(
+        export_db, sql_text)
 
-    export_db.create_view(view_name, sql_text_with_partner_short_name)
+    export_db.create_view(view_name, sql_text_with_inferred_columns)
 
     return view_name

@@ -23,7 +23,7 @@ demographic_survey_other_languages_spoken
 */
 
 SELECT
-    a.[partner_short_name]_user_id
+    a.[demographics_user_id]
     ,MAX(a.submission_ts::DATE) AS demographic_survey_submission_dt
     ,MAX(CASE WHEN a.question_id = 11
         THEN c.choice_desc END) AS demographic_survey_gender

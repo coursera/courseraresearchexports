@@ -193,11 +193,14 @@ Create a view in the postgres database. We are planning to include commonly
 used denormalized views as part of this project. To create one of these views
 (i.e. for the demographic_survey view)::
 
-    courseraresearchexports db create_view $CONTAINER_NAME --view_name demographic_survey --partner_short_name $PARTNER_SHORT_NAME
+    courseraresearchexports db create_view $CONTAINER_NAME --view_name demographic_survey
 
 If you have your own sql script that you'd like to create as a view::
 
-    courseraresearchexports db create_view $CONTAINER_NAME --sql_file /path/to/sql/file/ --partner_short_name $PARTNER_SHORT_NAME
+    courseraresearchexports db create_view $CONTAINER_NAME --sql_file /path/to/sql/file/
+
+Note: as `user_id` columns vary with partner and user id hashing, please refer
+to the exports guide for SQL formatting guidelines.
 
 unload_to_csv
 ~~~~~~~~~~~~~

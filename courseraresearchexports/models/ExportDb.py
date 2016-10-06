@@ -101,6 +101,15 @@ class ExportDb:
         rowcount = self.unload(query, output_filename)
         return rowcount
 
+    def get_columns(self, table):
+        """
+        Names of all the columns in a table.
+        :param table:
+        :return columns:
+        """
+        insp = reflection.Inspector.from_engine(self.engine)
+        return [column['name'] for column in insp.get_columns(table)]
+
     @property
     def tables(self):
         """
