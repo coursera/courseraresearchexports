@@ -7,7 +7,7 @@ def readme():
 
 setup(
     name='courseraresearchexports',
-    version='0.0.11',
+    version='0.0.14',
     description='Command line tool for convenient access to '
     'Coursera Research Data Exports.',
     long_description=readme(),
@@ -41,7 +41,8 @@ setup(
         'tqdm>=4.8.4',
         'tabulate>=0.7.5',
         'python-dateutil>=2.5.3',
-        'SQLAlchemy>=1.0.15'
+        'SQLAlchemy>=1.0.15',
+        'psycopg2>=2.6.2'
     ],
     test_suite='nose.collector',
     tests_require=['nose', 'nose-cover3'],
