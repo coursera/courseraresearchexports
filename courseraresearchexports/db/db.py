@@ -15,8 +15,31 @@
 import os
 import logging
 import pkg_resources
+import subprocess
 
+from courseraresearchexports.constants.container_constants import \
+    POSTGRES_DOCKER_IMAGE
+from courseraresearchexports.models.ContainerInfo import ContainerInfo
 from courseraresearchexports.models.ExportDb import ExportDb
+
+
+def connect(container_name, docker_client):
+    """
+    Create psql shell to container databaise
+    :param container_name:
+    :param docker_client:
+    """
+    container_info = ContainerInfo.from_container(
+        container_name, docker_client)
+
+    subprocess.call([
+        'docker', 'run', '-it', '--rm',
+        '--link', container_info.name,
+        POSTGRES_DOCKER_IMAGE, 'psql',
+        '-h', container_info.name,
+        '-d', container_info.database_name,
+        '-U', 'postgres'
+    ], shell=False)
 
 
 def get_table_names(container_name, docker_client):
