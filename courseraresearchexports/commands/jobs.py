@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tabulate import tabulate
+from __future__ import print_function
+
 import json
-import argparse
 import logging
+
+import argparse
+from tabulate import tabulate
 
 from courseraresearchexports.exports import api
 from courseraresearchexports.constants.api_constants import \
@@ -105,7 +108,7 @@ def get(args):
         export_request_info.append(
             ['Interval:', ' to '.join(export_request.interval)])
 
-    logging.info('\n' + tabulate(export_request_info, tablefmt="plain"))
+    print(tabulate(export_request_info, tablefmt="plain"))
 
 
 def get_all(args):
@@ -126,7 +129,7 @@ def get_all(args):
             export_request.scope_id,
             export_request.schema_names_display])
 
-    logging.info('\n' + tabulate(export_requests_table, headers='firstrow'))
+    print(tabulate(export_requests_table, headers='firstrow'))
 
 
 def download(args):
@@ -158,7 +161,7 @@ def get_clickstream_links(args):
         clickstream_links_request)
 
     # TODO: add more descriptive information or option write to text file
-    logging.info('\n' + tabulate(
+    print(tabulate(
         [[link] for link in clickstream_download_links],
         tablefmt="plain"))
 

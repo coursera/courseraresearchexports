@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
+
 import logging
 
 from tabulate import tabulate
@@ -66,8 +68,7 @@ def list_containers(args):
                 container_info.host_port
             ])
 
-        logging.info('\n' + tabulate(containers_info_table,
-                                     headers='firstrow'))
+        print(tabulate(containers_info_table, headers='firstrow'))
 
 
 def start_container(args):

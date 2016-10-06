@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
+
 import logging
+
 from tabulate import tabulate
 
 import courseraresearchexports.db.db as db
@@ -33,7 +36,7 @@ def list_tables(args):
     """
     d = utils.docker_client(args.docker_url, args.timeout)
     tables = db.get_table_names(args.container_name, docker_client=d)
-    logging.info('\n' + tabulate([[table] for table in tables]))
+    print(tabulate([[table] for table in tables]))
 
 
 def list_views(args):
@@ -42,7 +45,7 @@ def list_views(args):
     """
     d = utils.docker_client(args.docker_url, args.timeout)
     tables = db.get_view_names(args.container_name, docker_client=d)
-    logging.info('\n' + tabulate([[table] for table in tables]))
+    print(tabulate([[table] for table in tables]))
 
 
 def create_view(args):
