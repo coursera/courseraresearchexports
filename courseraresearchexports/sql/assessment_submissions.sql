@@ -13,24 +13,24 @@ WITH action_ids_with_responses AS
 )
 
 SELECT course_id
-		,course_branch_id
+	,course_branch_id
     ,course_item_id
     ,assessment_id
     ,assessment_action_id
-    ,[partner_short_name]_user_id
+    ,[assessments_user_id]
     ,assessment_action_ts
     ,assessment_action_ts = MIN(assessment_action_ts) OVER(
-        PARTITION BY assessment_id, [partner_short_name]_user_id
+        PARTITION BY assessment_id, [assessments_user_id]
     ) AS is_first_submission
     ,assessment_action_ts = MAX(assessment_action_ts) OVER(
-        PARTITION BY assessment_id, [partner_short_name]_user_id
+        PARTITION BY assessment_id, [assessments_user_id]
     ) AS is_last_submission
     ,assessment_action_ts = MIN(assessment_action_ts) OVER(
-        PARTITION BY course_id, course_item_id, [partner_short_name]_user_id
+        PARTITION BY course_id, course_item_id, [assessments_user_id]
     ) AS is_first_item_submission
 FROM assessment_actions
 JOIN action_ids_with_responses
     USING(assessment_action_id)
 JOIN course_branches
-		USING(course_branch_id)
+	USING(course_branch_id)
 ;
