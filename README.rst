@@ -17,8 +17,18 @@ To install this package, execute::
     pip install courseraresearchexports
 
 `pip <https://pip.pypa.io/en/latest/index.html>`_ is a python package manager.
+
 If you do not have ``pip`` installed on your machine, please follow the
 `installation instructions <https://pip.pypa.io/en/latest/installing.html#install-or-upgrade-pip>`_ for your platform.
+
+If you experience issues installing with `pip`, we recommend that you use the
+python 2.7 distribution of `Anaconda https://www.continuum.io/downloads`_ and try the above
+command again or to use a `virtualenv <https://pypi.python.org/pypi/virtualenv>`_
+for installation::
+
+    virtualenv venv
+    source venv/bin/activate
+    pip install courseraresearchexports
 
 Note: the ``containers`` subcommand requires ``docker`` to already be installed
 on your machine. Please see the `docker installation instructions <http://docs.docker.com/index.html>`_ for platform
