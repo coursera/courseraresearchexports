@@ -246,6 +246,7 @@ def create_scope_subparser(parser):
         'https://www.coursera.org/learn/machine-learning).')
     scope_subparser.add_argument(
         '--partner_id',
+        type=int,
         help='Export rows corresponding to learners within a partner.')
     scope_subparser.add_argument(
         '--partner_short_name',
