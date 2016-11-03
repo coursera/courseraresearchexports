@@ -93,6 +93,9 @@ Replace ``$COURSE_SLUG`` with your course slug (The course slug is the part afte
 ``/learn`` in the url. For ``https://www.coursera.org/learn/machine-learning``,
 the slug is `machine-learning`).
 
+You may also use `--course_id` if you know your course id. This is also necessary for non publically
+available courses.
+
 If a more limited set of data is required, you can specify which schemas are
 included with the export. (e.g. for the demographics tables)::
 
