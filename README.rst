@@ -116,6 +116,9 @@ Data coordinators can also request clickstream exports::
     courseraresearchexports jobs request clickstream --course_slug $COURSE_SLUG \
         --interval 2016-09-01 2016-09-02 --purpose "testing data export"
 
+We have 2 rate limits for creating jobs: up to 15 jobs per hour per user,
+and for each scope (course/specialization/group), one request per hour.
+
 get_all
 ~~~~~~~
 Lists the details and status of all data export requests that you have made::
