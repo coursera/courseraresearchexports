@@ -43,8 +43,8 @@ def requests_response_to_model(response_transformer):
                 logging.error(
                     'Request to {url} with body:\n\t{body}\nreceived response'
                     ':\n\t{text}\n'
-                    'Please contact data-support@coursera.org or #data-exports '
-                    'on Slack for assistance'
+                    'Please contact data-support@coursera.org or #data-exports'
+                    ' on Slack for assistance'
                     .format(url=response.url,
                             text=response.text,
                             body=(response.request and response.request.body)))

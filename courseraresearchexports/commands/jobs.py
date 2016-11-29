@@ -53,7 +53,7 @@ def request_clickstream(args):
                  .format(id=export_request_with_metadata.id))
     logging.debug('Request created with json body:\n{json}'
                   .format(json=json.dumps(
-                        export_request_with_metadata.to_json(), indent=2)))
+                      export_request_with_metadata.to_json(), indent=2)))
 
 
 def request_tables(args):
@@ -77,7 +77,7 @@ def request_tables(args):
                  .format(id=export_request_with_metadata.id))
     logging.debug('Request created with json body:\n{json}'
                   .format(json=json.dumps(
-                        export_request_with_metadata.to_json(), indent=2)))
+                      export_request_with_metadata.to_json(), indent=2)))
 
 
 def get(args):
