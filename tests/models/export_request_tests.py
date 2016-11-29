@@ -125,4 +125,4 @@ def test_export_request_with_metadata_deserialize_from_json():
     export_request = ExportRequestWithMetadata.from_json(export_request_json)
 
     assert export_request == ExportRequestWithMetadata(
-                                course_id=fake_course_id, id=fake_export_id)
+        course_id=fake_course_id, id=fake_export_id)

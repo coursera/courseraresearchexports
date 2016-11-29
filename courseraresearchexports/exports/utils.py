@@ -36,26 +36,7 @@ def download(export_request, dest):
         is_clickstream_export = \
             export_request.export_type == EXPORT_TYPE_CLICKSTREAM
 
-        if not export_request.download_link:
-            if export_request.status in ['PENDING', 'IN_PROGRESS']:
-                logging.error(
-                    'Export request {} is currently {} and is not ready for'
-                    'download. Please wait until the request is completed.'
-                    .format(export_request.id, export_request.status))
-                raise ValueError(
-                    'Export request is not yet ready for download')
-            elif export_request.status == 'TERMINATED':
-                logging.error(
-                    'Export request has been TERMINATED. Please contact '
-                    'data-support@coursera.org if we have not resolved this '
-                    'within 24 hours.')
-                raise ValueError('Export request has been TERMINATED')
-            elif is_clickstream_export:
-                # We don't fill in download links for clickstream exports
-                pass
-            else:
-                logging.error('Download link was not found.')
-                raise ValueError('Download link was not found')
+        _validate(export_request)
 
         if not os.path.exists(dest):
             logging.info('Creating destination folder: {}'.format(dest))
@@ -69,6 +50,12 @@ def download(export_request, dest):
                 partner_id=export_request.partner_id,
                 interval=export_request.interval)
             download_links = api.get_clickstream_download_links(links_request)
+            if len(download_links) == 0:
+                raise ValueError(
+                    'Clickstream download links not found. This typically '
+                    'means no data was available for the dates in '
+                    'the specified interval: {interval}'
+                    .format(interval=export_request.interval))
             return [download_url(link, dest) for link in download_links]
         else:
             raise ValueError('Require export_type is one of {} or {}'.format(
@@ -99,3 +86,29 @@ def download_url(url, dest_folder):
                 desc=filename):
             f.write(data)
     return full_filename
+
+
+def _validate(export_request):
+    is_clickstream_export = \
+        export_request.export_type == EXPORT_TYPE_CLICKSTREAM
+
+    if not export_request.download_link:
+        if export_request.status in ['PENDING', 'IN_PROGRESS']:
+            logging.error(
+                'Export request {} is currently {} and is not ready for'
+                'download. Please wait until the request is completed.'
+                .format(export_request.id, export_request.status))
+            raise ValueError(
+                'Export request is not yet ready for download')
+        elif export_request.status == 'TERMINATED':
+            logging.error(
+                'Export request has been TERMINATED. Please contact '
+                'data-support@coursera.org if we have not resolved this '
+                'within 24 hours.')
+            raise ValueError('Export request has been TERMINATED')
+        elif is_clickstream_export:
+            # We don't fill in download links for clickstream exports
+            pass
+        else:
+            logging.error('Download link was not found.')
+            raise ValueError('Download link was not found')
