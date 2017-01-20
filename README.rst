@@ -116,6 +116,8 @@ Data coordinators can also request clickstream exports::
     courseraresearchexports jobs request clickstream --course_slug $COURSE_SLUG \
         --interval 2016-09-01 2016-09-02 --purpose "testing data export"
 
+By default, clickstream exports will cache results for days already exported. To ignore the cache and request exports for the entire date range, pass in the flag ``--ignore_existing``.
+
 We have 2 rate limits for creating jobs: up to 15 jobs per hour per user,
 and for each scope (course/specialization/group), one request per hour.
 
