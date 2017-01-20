@@ -201,7 +201,7 @@ connect
 ~~~~~~~
 Open a shell to a postgres database::
 
-    courseraresearechexports db connect $CONTAINER_NAME
+    courseraresearchexports db connect $CONTAINER_NAME
 
 create_view
 ~~~~~~~~~~~
