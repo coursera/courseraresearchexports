@@ -39,7 +39,7 @@ def request_clickstream(args):
         course_id=args.course_id,
         course_slug=args.course_slug,
         partner_id=args.partner_id,
-        parter_short_name=args.partner_short_name,
+        partner_short_name=args.partner_short_name,
         group_id=args.group_id,
         anonymity_level=ANONYMITY_LEVEL_COORDINATOR,
         statement_of_purpose=args.purpose,
@@ -64,7 +64,7 @@ def request_tables(args):
         course_id=args.course_id,
         course_slug=args.course_slug,
         partner_id=args.partner_id,
-        parter_short_name=args.partner_short_name,
+        partner_short_name=args.partner_short_name,
         group_id=args.group_id,
         user_id_hashing=args.user_id_hashing,
         statement_of_purpose=args.purpose,
@@ -153,7 +153,7 @@ def get_clickstream_links(args):
         course_id=args.course_id,
         course_slug=args.course_slug,
         partner_id=args.partner_id,
-        parter_short_name=args.partner_short_name,
+        partner_short_name=args.partner_short_name,
         group_id=args.group_id,
         interval=args.interval)
 
