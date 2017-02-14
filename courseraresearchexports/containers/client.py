@@ -137,8 +137,8 @@ def create_from_folder(export_data_folder, docker_client,
         'host_config': docker_client.create_host_config(
             binds=['{}:/mnt/exportData:ro'.format(export_data_folder)],
             port_bindings={
-                5432: container_utils.get_next_available_port(list_all(
-                    docker_client))
+                5432: ('127.0.0.1', container_utils.get_next_available_port(list_all(
+                    docker_client)))
             })
     }
     container = create_postgres_container(
