@@ -81,7 +81,7 @@ def lookup_partner_id_by_short_name(partner_short_name):
     Find the partner_id by short name
     """
     payload = {'q': 'shortName', 'shortName': partner_short_name}
-    return requests.get(COURSE_API, params=payload)
+    return requests.get(PARTNER_API, params=payload)
 
 
 @requests_response_to_model(
