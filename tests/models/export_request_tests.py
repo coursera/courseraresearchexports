@@ -20,10 +20,12 @@ from courseraresearchexports.models.ExportRequest import ExportRequest
 from courseraresearchexports.models.ExportRequestWithMetadata import \
     ExportRequestWithMetadata
 from mock import patch
+from nose.tools import raises
 
 fake_course_id = 'fake_course_id'
 fake_course_slug = 'fake_course'
-fake_partner_id = 'fake_partner_id'
+fake_partner_id = 1
+bad_partner_id = 'bad_partner_id'
 fake_partner_short_name = 'fake_partner'
 fake_export_id = '1'
 
@@ -54,6 +56,9 @@ def test_create_from_args():
     export_request = ExportRequest.from_args(course_id=fake_course_id)
     assert ExportRequest(course_id=fake_course_id) == export_request
 
+@raises(ValueError)
+def test_create_from_args_non_integer_partner_id():
+    export_request = ExportRequest.from_args(partner_id=bad_partner_id)
 
 @patch('courseraresearchexports.models.utils.lookup_course_id_by_slug')
 def test_course_id_inference(lookup_course_id_by_slug):
