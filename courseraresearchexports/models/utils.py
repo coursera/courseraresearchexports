@@ -75,7 +75,7 @@ def lookup_course_id_by_slug(course_slug):
 
 
 @requests_response_to_model(
-    lambda response: response.json()['elements'][0]['id'])
+    lambda response: int(response.json()['elements'][0]['id']))
 def lookup_partner_id_by_short_name(partner_short_name):
     """
     Find the partner_id by short name
