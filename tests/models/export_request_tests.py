@@ -56,9 +56,11 @@ def test_create_from_args():
     export_request = ExportRequest.from_args(course_id=fake_course_id)
     assert ExportRequest(course_id=fake_course_id) == export_request
 
+
 @raises(ValueError)
 def test_create_from_args_non_integer_partner_id():
     export_request = ExportRequest.from_args(partner_id=bad_partner_id)
+
 
 @patch('courseraresearchexports.models.utils.lookup_course_id_by_slug')
 def test_course_id_inference(lookup_course_id_by_slug):

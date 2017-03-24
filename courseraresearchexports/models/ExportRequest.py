@@ -29,7 +29,10 @@ class ExportRequest:
                  statement_of_purpose=None, schema_names=None,
                  interval=None, ignore_existing=None, **kwargs):
         self._course_id = course_id
-        self._partner_id = int(partner_id) if partner_id is not None else partner_id
+        if partner_id is not None:
+            self._partner_id = int(partner_id)
+        else:
+            self._partner_id = partner_id
         self._group_id = group_id
         self._export_type = export_type
         self._anonymity_level = anonymity_level
