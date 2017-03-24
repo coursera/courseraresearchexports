@@ -213,9 +213,11 @@ used denormalized views as part of this project. To create one of these views
 
     courseraresearchexports db create_view $CONTAINER_NAME --view_name demographic_survey
 
-If you have your own sql script that you'd like to create as a view::
+If you have your own sql script that you'd like to create as a view run::
 
-    courseraresearchexports db create_view $CONTAINER_NAME --sql_file /path/to/sql/file/
+    courseraresearchexports db create_view $CONTAINER_NAME --sql_file /path/to/sql/file/new_view.sql
+
+This will create a view using the name of the file as the name of the view, in this case "new_view".
 
 Note: as `user_id` columns vary with partner and user id hashing, please refer
 to the exports guide for SQL formatting guidelines.
