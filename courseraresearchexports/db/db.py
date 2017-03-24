@@ -165,7 +165,8 @@ def create_view_from_file(container_name, sql_file, docker_client):
     with open(sql_file, 'r') as sf:
         sql_text = sf.read()
 
-    view_name = os.path.split(os.path.basename(sql_text))[0]
+    view_name = os.path.splitext(os.path.basename(sql_file))[0]
+
     sql_text_with_inferred_columns = replace_user_id_placeholders(
         export_db, sql_text)
 
