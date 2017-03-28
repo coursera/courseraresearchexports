@@ -37,4 +37,5 @@ SCHEMA_NAMES = [
     'peer_assignments',
     'discussions',
     'programming_assignments',
-    'course_content']
+    'course_content',
+    'ecb']
