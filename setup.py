@@ -7,7 +7,7 @@ def readme():
 
 setup(
     name='courseraresearchexports',
-    version='0.0.24',
+    version='0.0.25',
     description='Command line tool for convenient access to '
     'Coursera Research Data Exports.',
     long_description=readme(),
