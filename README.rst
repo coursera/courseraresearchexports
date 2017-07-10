@@ -7,7 +7,7 @@ courseraresearchexports
 This project is a library consisting of a command line interface and a client
 for interacting with Coursera's research exports. Up to date documentation
 of the data provided by Coursera for research purposes is available on gitbooks
-, `Coursera Data Exports Guide <https://coursera.gitbooks.io/data-exports/content/introduction/programmatic_access.html>`_.
+, `Coursera Data Exports Guide <https://coursera.gitbooks.io/data-exports/>`_.
 
 Installation
 ------------
@@ -103,7 +103,7 @@ included with the export. (e.g. for the demographics tables)::
         --schemas demographics --purpose "testing data export"
 
 For more information on the available tables/schemas, please refer to the
-`Coursera Data Exports Guide <https://coursera.gitbooks.io/data-exports/content/introduction/programmatic_access.html>`_.
+`Coursera Data Exports Guide <https://coursera.gitbooks.io/data-exports/data_tables_guide/>`_.
 
 If you are a data coordinator, you can request that user ids are linked between
 domains of the data export::
