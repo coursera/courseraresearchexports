@@ -240,6 +240,15 @@ list_views
 List all the views present inside a dockerized database::
 
     courseraresearchexports db list_views $CONTAINER_NAME
+    
+Using `courseraresearchexports` on a machine without a browser
+------------
+Sometimes, a browser is not available, making the oauth flow not possible. Commonly, this occurs when users want to automate the data export process by using an external machine.
+
+To get around this, you may generate the access token initially on a machine with browser access [e.g your laptop]. The access token is serialized in your local file system at `~/.coursera/manage_research_exports_oauth2_cache.pickle`.
+
+Requests after the first can use the refresh token flow, which does not require a browser. By copying the initial pickled access token to a remote machine, that machine can continue to request updated data. 
+
 
 
 Bugs / Issues / Feature Requests
