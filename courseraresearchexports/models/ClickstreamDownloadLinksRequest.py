@@ -46,7 +46,8 @@ class ClickstreamDownloadLinksRequest:
         elif kwargs.get('group_id'):
             logging.error(
                 'Eventing exports by group is not currently supported. '
-                'Please see: https://partner.coursera.help/hc/articles/360021121132'
+                'Please see: '
+                'https://partner.coursera.help/hc/articles/360021121132'
                 )
             raise ValueError('Eventing exports by group is not supported.')
 
