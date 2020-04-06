@@ -39,4 +39,5 @@ SCHEMA_NAMES = [
     'programming_assignments',
     'course_content',
     'ecb',
-    'notebooks']
+    'notebooks',
+    'transactions']
