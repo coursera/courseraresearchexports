@@ -11,6 +11,7 @@ setup(
     description='Command line tool for convenient access to '
     'Coursera Research Data Exports.',
     long_description=readme(),
+    long_description_content_type='text/markdown',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: Apache Software License',
