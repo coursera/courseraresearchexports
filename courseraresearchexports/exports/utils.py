@@ -14,7 +14,7 @@
 
 import logging
 import os
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from tqdm import tqdm
 import requests

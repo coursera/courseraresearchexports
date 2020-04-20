@@ -81,10 +81,10 @@ class ExportDb:
 
         with open(output_filename, 'wb') as csv_file:
             csv_obj = csv.writer(csv_file)
-            csv_obj.writerow(result.keys())
+            csv_obj.writerow(list(result.keys()))
             for row in result:
                 encoded_row = [col.encode('utf8')
-                               if isinstance(col, unicode) else col
+                               if isinstance(col, str) else col
                                for col in row]
                 csv_obj.writerow(encoded_row)
 

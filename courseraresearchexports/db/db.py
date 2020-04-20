@@ -34,7 +34,7 @@ def replace_user_id_placeholders(export_db, sql_text):
     """
     hashed_user_id_columns_dict = infer_hashed_user_id_columns(export_db)
 
-    for placeholder, column_name in hashed_user_id_columns_dict.items():
+    for placeholder, column_name in list(hashed_user_id_columns_dict.items()):
         sql_text = sql_text.replace(placeholder, column_name)
 
     return sql_text
@@ -48,7 +48,7 @@ def infer_hashed_user_id_columns(export_db):
     """
     hashed_user_id_columns_dict = {}
 
-    for placeholder, table in HASHED_USER_ID_COLUMN_TO_SOURCE_TABLE.items():
+    for placeholder, table in list(HASHED_USER_ID_COLUMN_TO_SOURCE_TABLE.items()):
         if table in export_db.tables:
             columns = export_db.get_columns(table)
             inferred_column = infer_user_id_column(columns)
