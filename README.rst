@@ -22,7 +22,7 @@ If you do not have ``pip`` installed on your machine, please follow the
 `installation instructions <https://pip.pypa.io/en/latest/installing.html#install-or-upgrade-pip>`_ for your platform.
 
 If you experience issues installing with `pip`, we recommend that you use the
-python 2.7 distribution of `Anaconda <https://www.continuum.io/downloads>`_ and try the above
+python 2.7 distribution of `Anaconda <https://docs.conda.io/en/latest/miniconda.html>`_ and try the above
 command again or to use a `virtualenv <https://pypi.python.org/pypi/virtualenv>`_
 for installation::
 
