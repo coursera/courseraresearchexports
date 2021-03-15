@@ -40,14 +40,28 @@ def requests_response_to_model(response_transformer):
                 response.raise_for_status()
 
             except requests.exceptions.HTTPError:
+                help_string = ('Please consult the Coursera Data '
+                               'Exports Guide for further assistance: '
+                               'https://partner.coursera.help/hc/en-us/articles/360021121132.')  # noqa
+
+                if (response.status_code == 403):
+                    help_string = ('Please authorize this application '
+                                   'by running:\n'
+                                   '\t$ courseraoauth2client config authorize --app manage_research_exports\n'  # noqa
+                                   'See https://github.com/coursera/courseraoauth2client '  # noqa
+                                   'for more information on authorization.\n'
+                                   'For further assistance, consult the '
+                                   'Coursera Data Exports Guide '
+                                   'https://partner.coursera.help/hc/en-us/articles/360021121132.')  # noqa
+
                 logging.error(
                     'Request to {url} with body:\n\t{body}\nreceived response'
                     ':\n\t{text}\n'
-                    'Please contact data-support@coursera.org or #data-exports'
-                    ' on Slack for assistance'
+                    '{help_string}\n'
                     .format(url=response.url,
                             text=response.text,
-                            body=(response.request and response.request.body)))
+                            body=(response.request and response.request.body),
+                            help_string=help_string))
                 raise
 
             return response_transformer(response)
