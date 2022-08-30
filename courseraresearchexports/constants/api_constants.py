@@ -35,6 +35,7 @@ SCHEMA_NAMES = [
     'assessments',
     'course_grades',
     'peer_assignments',
+    'staff_graded_assignments',
     'discussions',
     'programming_assignments',
     'course_content',
