@@ -34,6 +34,8 @@ Note: the ``containers`` subcommand requires ``docker`` to already be installed
 on your machine. Please see the `docker installation instructions <http://docs.docker.com/index.html>`_ for platform
 specific information.
 
+Refer to `Issues`_ section for additional debugging around installation.
+
 autocomplete
 ^^^^^^^^^^^^
 
@@ -86,6 +88,27 @@ request
 Creates an data export job request and return the export request id. To create a
 data export requests for all available tables for a course::
 
+    courseraresearchexports jobs request tables --course_id $COURSE_ID \
+        --purpose "testing data export"
+
+In order to know your course_id, you can take advantage
+of our COURSE API, putting in the appropriate `courseSlug`. 
+
+For example,
+if the `courseSlug` is `developer-iot`, you can query the course_id by making the request in your browser logged in session::
+
+    https://api.coursera.org/api/onDemandCourses.v1?q=slug&slug=developer-iot
+
+The response will be a JSON object containing an id field with the value::
+
+    iRl53_BWEeW4_wr--Yv6Aw
+
+**Note**: The course slug is the part after
+``/learn`` in your course url. For ``https://www.coursera.org/learn/machine-learning``,
+the slug is `machine-learning`
+
+If you have a publically available course, you can request the export using ::
+
     courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
         --purpose "testing data export"
 
@@ -93,33 +116,55 @@ Replace ``$COURSE_SLUG`` with your course slug (The course slug is the part afte
 ``/learn`` in the url. For ``https://www.coursera.org/learn/machine-learning``,
 the slug is `machine-learning`).
 
-You may also use `--course_id` if you know your course id. This is also necessary for non publically
-available courses.
-
 If a more limited set of data is required, you can specify which schemas are
-included with the export. (e.g. for the demographics tables)::
+included with the export. (e.g. for the demographics and marketing tables)::
 
-    courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
-        --schemas demographics --purpose "testing data export"
+    courseraresearchexports jobs request tables --course_id $COURSE_ID \
+        --schemas demographics marketing --purpose "testing data export"
+
+You can look at all the possible ways to export using::
+    courseraresearchexports jobs request tables -h
+
+**Recommendations**: 
+1. Always request the specific schemas that you need by adding the `schemas` while requesting the exports.  
 
 For more information on the available tables/schemas, please refer to the
 `Coursera Data Exports Guide <https://partner.coursera.help/hc/articles/360021121132/>`_.
 
+2. While requesting the exports for all courses in your institution, it is recommended to use the partner level export,
+ rather than requesting individual course level exports. You can use the command::
+    courseraresearchexports jobs request tables --partner_short_name $PARTNER_SHORT_NAME \
+        --schemas demographics marketing --purpose "testing data export"
+
+ Your partner_short_name can be found in the University Assets section of your institution setting.
+ 
+ Note that the above command is available for only publicly available partners.
+ If you have your partnerID, you can request the export using::
+    courseraresearchexports jobs request tables --partner_id $PARTNER_ID \
+        --schemas demographics marketing --purpose "testing data export"
+
+You can find your partner_id using the API in your browser login session::
+    https://www.coursera.org/api/partners.v1?q=shortName&shortName=$PARTNER_SHORT_NAME
+
 If you are a data coordinator, you can request that user ids are linked between
 domains of the data export::
 
-    courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
+    courseraresearchexports jobs request tables --course_id $COURSE_ID \
         --purpose "testing data export" --user_id_hashing linked
 
 Data coordinators can also request clickstream exports::
 
-    courseraresearchexports jobs request clickstream --course_slug $COURSE_SLUG \
+    courseraresearchexports jobs request clickstream --course_id $COURSE_ID \
         --interval 2016-09-01 2016-09-02 --purpose "testing data export"
 
 By default, clickstream exports will cache results for days already exported. To ignore the cache and request exports for the entire date range, pass in the flag ``--ignore_existing``.
 
-We have 2 rate limits for creating jobs: up to 15 jobs per hour per user,
-and for each scope (course/specialization/group), one request per hour.
+Rate limits
+~~~~~~~~~~~
+We have 3 rate limits for creating jobs:
+Up to 10 course export jobs per hour per user,
+Up to 1 partner export job per hour per user per partner,
+and for each scope (course/specialization/group), one request per hour (i.e. a same course cannot be exported again in a given hour)
 
 get_all
 ~~~~~~~
@@ -146,7 +191,7 @@ clickstream export requests on Amazon S3. The clickstream data for each day is
 saved into a separate file and download links to these files can be retrieved
 by running::
 
-    courseraresearchexports jobs clickstream_download_links --course_slug $COURSE_SLUG
+    courseraresearchexports jobs clickstream_download_links --course_id $COURSE_ID
 
 containers
 ^^^^^^^^^^
@@ -242,7 +287,7 @@ List all the views present inside a dockerized database::
     courseraresearchexports db list_views $CONTAINER_NAME
     
 Using `courseraresearchexports` on a machine without a browser
-------------
+--------------------------------------------------------------
 Sometimes, a browser is not available, making the oauth flow not possible. Commonly, this occurs when users want to automate the data export process by using an external machine.
 
 To get around this, you may generate the access token initially on a machine with browser access [e.g your laptop]. The access token is serialized in your local file system at `~/.coursera/manage_research_exports_oauth2_cache.pickle`.
@@ -281,3 +326,18 @@ Code Style
 Code should conform to pep8 style requirements. To check, simply run::
 
     pep8 courseraresearchexports tests
+
+
+Issues
+-------
+If you face following error when installling psycopg2 package for Mac::
+
+    ld: library not found for -lssl
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
+    error: command 'gcc' failed with exit status 1
+
+Install openssl package if not installed::
+
+    brew install openssl
+    export LDFLAGS="-L/usr/local/opt/openssl/lib"
+

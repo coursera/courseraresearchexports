@@ -216,13 +216,13 @@ class ExportRequest:
     @property
     def scope_name(self):
         """
-        Human readable name for this scope context. course slugs for courses,
-        partner short names for partners, but only group ids for groups (api is
-        not open)
+        Human readable name for this scope context. Partner short names for
+        partners, but only group ids for groups and course ids for courses(apis
+        are not open)
         :return:
         """
         if self._course_id:
-            return utils.lookup_course_slug_by_id(self._course_id)
+            return self._course_id
         elif self._partner_id:
             return utils.lookup_partner_short_name_by_id(self._partner_id)
         elif self._group_id:
