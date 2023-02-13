@@ -161,10 +161,9 @@ By default, clickstream exports will cache results for days already exported. To
 
 Rate limits
 ~~~~~~~~~~~
-We have 3 rate limits for creating jobs:
-Up to 10 course export jobs per hour per user,
-Up to 1 partner export job per hour per user per partner,
-and for each scope (course/specialization/group), one request per hour (i.e. a same course cannot be exported again in a given hour)
+
+We have rate limits enabled for the number of exports that can be performed. The underlying export API returns the rate limit error message, 
+which is printed when the command fails. The error message reflects the reason why you might be rate limited.
 
 get_all
 ~~~~~~~
