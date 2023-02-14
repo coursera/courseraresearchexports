@@ -92,10 +92,10 @@ data export requests for all available tables for a course::
         --purpose "testing data export"
 
 In order to know your course_id, you can take advantage
-of our COURSE API, putting in the appropriate `courseSlug`. 
+of our COURSE API, putting in the appropriate course_slug. 
 
 For example,
-if the `courseSlug` is `developer-iot`, you can query the course_id by making the request in your browser logged in session::
+if the course_slug is `developer-iot`, you can query the course_id by making the request in your browser logged in session::
 
     https://api.coursera.org/api/onDemandCourses.v1?q=slug&slug=developer-iot
 
