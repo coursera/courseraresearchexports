@@ -222,9 +222,17 @@ class ExportRequest:
         :return:
         """
         if self._course_id:
-            return self._course_id
+            try: 
+                return utils.lookup_course_slug_by_id(self.course_id)
+            except:
+                print("couldn't create human readable course name, using course_id")
+                return self._course_id
         elif self._partner_id:
-            return utils.lookup_partner_short_name_by_id(self._partner_id)
+            try:
+                return utils.lookup_partner_short_name_by_id(self._partner_id)
+            except:
+                print("couldn't create human readable partner name, using course_id")
+                return self._partner_id
         elif self._group_id:
             return self._group_id
         else:

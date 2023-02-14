@@ -26,7 +26,7 @@ python 2.7 distribution of `Anaconda <https://docs.conda.io/en/latest/miniconda.
 command again or to use a `virtualenv <https://pypi.python.org/pypi/virtualenv>`_
 for installation::
 
-    virtualenv venv
+    virtualenv venv -p python2.7
     source venv/bin/activate
     pip install courseraresearchexports
 
@@ -117,10 +117,10 @@ Replace ``$COURSE_SLUG`` with your course slug (The course slug is the part afte
 the slug is `machine-learning`).
 
 If a more limited set of data is required, you can specify which schemas are
-included with the export. (e.g. for the demographics and marketing tables)::
+included with the export. (e.g. for the demographics and notebooks tables)::
 
     courseraresearchexports jobs request tables --course_id $COURSE_ID \
-        --schemas demographics marketing --purpose "testing data export"
+        --schemas demographics notebooks --purpose "testing data export"
 
 You can look at all the possible ways to export using::
     courseraresearchexports jobs request tables -h
@@ -134,14 +134,14 @@ For more information on the available tables/schemas, please refer to the
 2. While requesting the exports for all courses in your institution, it is recommended to use the partner level export,
  rather than requesting individual course level exports. You can use the command::
     courseraresearchexports jobs request tables --partner_short_name $PARTNER_SHORT_NAME \
-        --schemas demographics marketing --purpose "testing data export"
+        --schemas demographics notebooks --purpose "testing data export"
 
  Your partner_short_name can be found in the University Assets section of your institution setting.
  
  Note that the above command is available for only publicly available partners.
  If you have your partnerID, you can request the export using::
     courseraresearchexports jobs request tables --partner_id $PARTNER_ID \
-        --schemas demographics marketing --purpose "testing data export"
+        --schemas demographics notebooks --purpose "testing data export"
 
 You can find your partner_id using the API in your browser login session::
     https://www.coursera.org/api/partners.v1?q=shortName&shortName=$PARTNER_SHORT_NAME
@@ -338,4 +338,6 @@ Install openssl package if not installed::
 
     brew install openssl
     export LDFLAGS="-L/usr/local/opt/openssl/lib"
+    or 
+    export LDFLAGS=-L/usr/local/opt/openssl@3/lib
 
