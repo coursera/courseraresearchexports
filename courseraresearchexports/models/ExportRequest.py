@@ -16,6 +16,8 @@ from courseraresearchexports.constants.api_constants import \
     ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED, EXPORT_TYPE_TABLES,\
     EXPORT_TYPE_CLICKSTREAM, EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES
 from courseraresearchexports.models import utils
+import re
+import string
 
 
 class ExportRequest:
@@ -216,15 +218,24 @@ class ExportRequest:
     @property
     def scope_name(self):
         """
-        Human readable name for this scope context. course slugs for courses,
-        partner short names for partners, but only group ids for groups (api is
-        not open)
+        Human readable name for this scope context. Partner short names for
+        partners, but only group ids for groups and course ids for courses(apis
+        are not open)
         :return:
         """
         if self._course_id:
-            return utils.lookup_course_slug_by_id(self._course_id)
+            try: 
+                return utils.lookup_course_slug_by_id(self._course_id)
+            except:
+                print("couldn't create human readable course name, using alphanumeric characters of course_id")
+                chars = re.escape(string.punctuation)
+                return  re.sub(r'['+chars+']', '', self._course_id)
         elif self._partner_id:
-            return utils.lookup_partner_short_name_by_id(self._partner_id)
+            try:
+                return utils.lookup_partner_short_name_by_id(self._partner_id)
+            except:
+                print("couldn't create human readable partner name, using course_id")
+                return self._partner_id
         elif self._group_id:
             return self._group_id
         else:

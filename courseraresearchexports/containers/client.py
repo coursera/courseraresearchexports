@@ -119,7 +119,8 @@ def initialize(container_name, docker_client):
 
 def create_from_folder(export_data_folder, docker_client,
                        container_name='coursera-exports',
-                       database_name='coursera-exports'):
+                       database_name='coursera-exports',
+                       database_password=''):
     """
     Using a folder containing a Coursera research export, create a docker
      container with the export data loaded into a data base and start the
@@ -128,11 +129,16 @@ def create_from_folder(export_data_folder, docker_client,
     :param docker_client:
     :param container_name:
     :param database_name:
+    :param database_password:
     :return container_id:
     """
     logging.debug('Creating containers from {folder}'.format(
         folder=export_data_folder))
+
+    env = ({'POSTGRES_PASSWORD': database_password} if database_password
+           else {'POSTGRES_HOST_AUTH_METHOD': 'trust'})
     create_container_args = {
+        'environment': env,
         'volumes': ['/mnt/exportData'],
         'host_config': docker_client.create_host_config(
             binds=['{}:/mnt/exportData:ro'.format(export_data_folder)],
@@ -190,7 +196,9 @@ def create_postgres_container(docker_client, container_name, database_name,
 
 
 def create_from_export_request_id(export_request_id, docker_client,
-                                  container_name=None, database_name=None):
+                                  container_name=None,
+                                  database_name=None,
+                                  database_password=''):
     """
     Create a docker container containing the export data from a given
     export request. Container and database name will be inferred as the
@@ -199,6 +207,7 @@ def create_from_export_request_id(export_request_id, docker_client,
     :param docker_client:
     :param container_name:
     :param database_name:
+    :param database_password:
     :return container_id:
     """
     export_request = exports.api.get(export_request_id)[0]
@@ -223,7 +232,9 @@ def create_from_export_request_id(export_request_id, docker_client,
         database_name=(database_name if database_name
                        else export_request.scope_name),
         container_name=(container_name if container_name
-                        else export_request.scope_name)
+                        else export_request.scope_name),
+        database_password=(database_password if database_password
+                           else '')
     )
 
     shutil.rmtree(dest)
