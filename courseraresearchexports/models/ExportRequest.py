@@ -16,6 +16,8 @@ from courseraresearchexports.constants.api_constants import \
     ANONYMITY_LEVEL_COORDINATOR, ANONYMITY_LEVEL_ISOLATED, EXPORT_TYPE_TABLES,\
     EXPORT_TYPE_CLICKSTREAM, EXPORT_TYPE_GRADEBOOK, SCHEMA_NAMES
 from courseraresearchexports.models import utils
+import re
+import string
 
 
 class ExportRequest:
@@ -223,10 +225,11 @@ class ExportRequest:
         """
         if self._course_id:
             try: 
-                return utils.lookup_course_slug_by_id(self.course_id)
+                return utils.lookup_course_slug_by_id(self._course_id)
             except:
-                print("couldn't create human readable course name, using course_id")
-                return self._course_id
+                print("couldn't create human readable course name, using alphanumeric characters of course_id")
+                chars = re.escape(string.punctuation)
+                return  re.sub(r'['+chars+']', '', self._course_id)
         elif self._partner_id:
             try:
                 return utils.lookup_partner_short_name_by_id(self._partner_id)

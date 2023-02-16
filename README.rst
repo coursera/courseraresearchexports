@@ -107,7 +107,7 @@ The response will be a JSON object containing an id field with the value::
 ``/learn`` in your course url. For ``https://www.coursera.org/learn/machine-learning``,
 the slug is `machine-learning`
 
-If you have a publically available course, you can request the export using ::
+If you have a publically available course, you can request the export using::
 
     courseraresearchexports jobs request tables --course_slug $COURSE_SLUG \
         --purpose "testing data export"
@@ -123,23 +123,27 @@ included with the export. (e.g. for the demographics and notebooks tables)::
         --schemas demographics notebooks --purpose "testing data export"
 
 You can look at all the possible ways to export using::
+
     courseraresearchexports jobs request tables -h
 
-**Recommendations**: 
-1. Always request the specific schemas that you need by adding the `schemas` while requesting the exports.  
+**Recommendations**
 
+
+1. Always request the specific schemas that you need by adding the `schemas` while requesting the exports.  
 For more information on the available tables/schemas, please refer to the
 `Coursera Data Exports Guide <https://partner.coursera.help/hc/articles/360021121132/>`_.
 
 2. While requesting the exports for all courses in your institution, it is recommended to use the partner level export,
- rather than requesting individual course level exports. You can use the command::
+rather than requesting individual course level exports. You can use the command::
+
     courseraresearchexports jobs request tables --partner_short_name $PARTNER_SHORT_NAME \
         --schemas demographics notebooks --purpose "testing data export"
 
- Your partner_short_name can be found in the University Assets section of your institution setting.
+Your partner_short_name can be found in the University Assets section of your institution setting.
  
- Note that the above command is available for only publicly available partners.
- If you have your partnerID, you can request the export using::
+Note that the above command is available for only publicly available partners.
+If you have your partnerID, you can request the export using::
+
     courseraresearchexports jobs request tables --partner_id $PARTNER_ID \
         --schemas demographics notebooks --purpose "testing data export"
 
